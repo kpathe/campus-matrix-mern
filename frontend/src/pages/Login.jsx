@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import  Button  from '../components/ui/button';
+import Button from '../components/ui/button';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -27,17 +27,21 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-md space-y-4">
-        <h2 className="text-2xl font-bold">Log In</h2>
-        {error && <p className="text-red-500">{error}</p>}
+    <div className="min-h-screen flex items-center justify-center bg-gray-100">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md bg-white p-6 rounded-lg shadow-md"
+      >
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-4">Campus Matrix</h2>
+        <p className="text-lg text-center mb-6">Log in to your account</p>
+        {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
         <input
           type="email"
           name="email"
           value={form.email}
           onChange={(e) => setForm({ ...form, email: e.target.value })}
-          placeholder="Email"
-          className="w-full p-2 border rounded"
+          placeholder="Email address"
+          className="w-full p-3 border rounded mb-3"
           required
         />
         <input
@@ -46,10 +50,24 @@ export default function Login() {
           value={form.password}
           onChange={(e) => setForm({ ...form, password: e.target.value })}
           placeholder="Password"
-          className="w-full p-2 border rounded"
+          className="w-full p-3 border rounded mb-4"
           required
         />
-        <Button type="submit" className="w-full">Log In</Button>
+        <Button
+          type="submit"
+          className="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700"
+        >
+          Log In
+        </Button>
+        <p className="text-center mt-4 text-sm">
+          Don’t have an account?{" "}
+          <span
+            className="text-blue-600 cursor-pointer hover:underline"
+            onClick={() => navigate("/auth/signup")}
+          >
+            Sign Up
+          </span>
+        </p>
       </form>
     </div>
   );
