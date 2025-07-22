@@ -1,35 +1,47 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import Avatar from "../components/ui/avatar";
 import Button from "../components/ui/button";
-import DropdownMenu from "../components/ui/dropdown-menu";
 
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
-  // Dummy user — replace this with actual auth
-  const [user, setUser] = useState({
-    name: "John Doe",
-    role: "mentee", // or "mentor"
-    image: "/avatar.png",
-  });
-
-  const isLoading = false;
+  const fetchUser = async () => {
+    try {
+      const res = await fetch("http://localhost:5000/api/auth/me", {
+        method: "GET",
+        credentials: "include",
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setUser(data);
+      } else {
+        setUser(null);
+      }
+    } catch (err) {
+      console.error("Error fetching user:", err);
+      setUser(null);
+    }
+  };
 
   useEffect(() => {
-    const handleResize = () => {
-      if (window.innerWidth >= 768) {
-        setIsMobileMenuOpen(false);
-      }
-    };
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    fetchUser();
   }, []);
 
-  const handleLogout = () => {
-    setUser(null); // Replace with actual logout
-    setIsMobileMenuOpen(false);
+  const handleLogout = async () => {
+    try {
+      await fetch("http://localhost:5000/api/auth/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      setUser(null);
+      navigate("/auth/login"); // ✅ redirect to landing page after logout
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
   };
 
   const isLoggedIn = !!user;
@@ -44,42 +56,48 @@ export default function Navbar() {
 
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
-            {isLoggedIn && user.role === "mentee" && (
+            {isLoggedIn && user?.role === "mentee" && (
               <Link to="/mentors" className="text-gray-700 hover:text-blue-600">
                 Find Mentor
               </Link>
             )}
-            {isLoggedIn && user.role === "mentor" && (
+            {isLoggedIn && user?.role === "mentor" && (
               <Link to="/mentees" className="text-gray-700 hover:text-blue-600">
                 Find Mentee
               </Link>
             )}
+            <Link to="/goals" className="text-gray-700 hover:text-blue-600">
+              Goals
+            </Link>
+            <Link to="/resources" className="text-gray-700 hover:text-blue-600">
+              Resources
+            </Link>
+            <Link to="/events" className="text-gray-700 hover:text-blue-600">
+              Events
+            </Link>
+
             {isLoggedIn && (
               <>
-                <Link to="/goals" className="text-gray-700 hover:text-blue-600">
-                  Goals
+                <Link to="/messages" className="text-gray-700 hover:text-blue-600">
+                  Messages
                 </Link>
-                <Link to="/resources" className="text-gray-700 hover:text-blue-600">
-                  Resources
+                <Link to="/profile" className="w-10 h-10 rounded-full overflow-hidden border border-gray-300">
+                  <img
+                    src={user?.image || "/avatar.png"}
+                    alt={user?.name || "User"}
+                    className="w-full h-full object-cover"
+                  />
                 </Link>
-                <Link to="/events" className="text-gray-700 hover:text-blue-600">
-                  Events
-                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="text-red-600 border border-red-600 px-3 py-1 rounded hover:bg-red-100 cursor-pointer"
+                >
+                  Logout
+                </button>
               </>
             )}
 
-            {isLoading ? (
-              <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
-            ) : isLoggedIn ? (
-              <DropdownMenu
-                trigger={<Avatar src={user.image} alt={user.name} />}
-                items={[
-                  { label: "Profile", link: "/profile" },
-                  { label: "Settings", link: "/settings" },
-                  { label: "Logout", action: handleLogout, danger: true },
-                ]}
-              />
-            ) : (
+            {!isLoggedIn && (
               <div className="flex space-x-4">
                 <Button variant="outline">
                   <Link to="/auth/login">Login</Link>
@@ -112,73 +130,65 @@ export default function Navbar() {
       >
         <div className="flex flex-col h-full p-6 space-y-6">
           <div className="flex justify-between items-center">
-            <span className="text-xl font-bold text-blue-600">Campus Matrix</span>
+            <Link
+              to="/"
+              className="text-xl font-bold text-blue-600"
+              onClick={() => setIsMobileMenuOpen(false)}
+            >
+              Campus Matrix
+            </Link>
             <button onClick={() => setIsMobileMenuOpen(false)}>
               <X className="h-6 w-6 text-gray-700 hover:text-blue-600" />
             </button>
           </div>
 
           <div className="flex flex-col space-y-4">
-            {isLoggedIn && user.role === "mentee" && (
-              <Link
-                to="/mentors"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-lg text-gray-700 hover:text-blue-600"
-              >
+            {isLoggedIn && user?.role === "mentee" && (
+              <Link to="/mentors" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-700 hover:text-blue-600">
                 Find Mentor
               </Link>
             )}
-            {isLoggedIn && user.role === "mentor" && (
-              <Link
-                to="/mentees"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-lg text-gray-700 hover:text-blue-600"
-              >
+            {isLoggedIn && user?.role === "mentor" && (
+              <Link to="/mentees" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-700 hover:text-blue-600">
                 Find Mentee
               </Link>
             )}
+            <Link to="/goals" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-700 hover:text-blue-600">
+              Goals
+            </Link>
+            <Link to="/resources" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-700 hover:text-blue-600">
+              Resources
+            </Link>
+            <Link to="/events" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-700 hover:text-blue-600">
+              Events
+            </Link>
             {isLoggedIn && (
-              <>
-                <Link
-                  to="/goals"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-lg text-gray-700 hover:text-blue-600"
-                >
-                  Goals
-                </Link>
-                <Link
-                  to="/resources"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-lg text-gray-700 hover:text-blue-600"
-                >
-                  Resources
-                </Link>
-                <Link
-                  to="/events"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="text-lg text-gray-700 hover:text-blue-600"
-                >
-                  Events
-                </Link>
-              </>
+              <Link to="/messages" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-700 hover:text-blue-600">
+                Messages
+              </Link>
             )}
           </div>
 
           <div className="mt-auto pt-6 border-t border-gray-200">
-            {isLoading ? (
-              <div className="w-full h-10 bg-gray-200 animate-pulse rounded" />
-            ) : isLoggedIn ? (
+            {isLoggedIn ? (
               <div className="space-y-4">
                 <Link
                   to="/profile"
-                  className="flex items-center space-x-2 text-lg"
                   onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex items-center space-x-2 text-lg"
                 >
-                  <Avatar src={user.image} alt={user.name} size="8" />
+                  <Avatar
+                    src={user?.image || "/avatar.png"}
+                    alt={user?.name}
+                    size="8"
+                  />
                   <span>Profile</span>
                 </Link>
                 <button
-                  onClick={handleLogout}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleLogout();
+                  }}
                   className="text-left text-lg text-red-600 w-full"
                 >
                   Logout
@@ -202,7 +212,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Overlay */}
       {isMobileMenuOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-30 md:hidden"

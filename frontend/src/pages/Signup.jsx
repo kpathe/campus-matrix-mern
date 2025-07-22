@@ -1,107 +1,140 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Button from '../components/ui/button';
-import axios from '../api/axios';
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
-export default function Signup() {
-  const [form, setForm] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: 'mentee',
-    year: '1'
+const Signup = () => {
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    password: "",
+    year: "",
+    role: "", // mentor or mentee
   });
 
-  const navigate = useNavigate();
+  const [roleDisabled, setRoleDisabled] = useState(false);
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+
+    // Auto-select role based on year
+    if (name === "year") {
+      let updatedRole = "";
+      let disableRole = false;
+
+      if (value === "1") {
+        updatedRole = "mentee";
+        disableRole = true;
+      } else if (value === "4") {
+        updatedRole = "mentor";
+        disableRole = true;
+      }
+
+      setFormData((prev) => ({
+        ...prev,
+        year: value,
+        role: updatedRole,
+      }));
+      setRoleDisabled(disableRole);
+    } else {
+      setFormData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      await axios.post('/auth/signup', form, { withCredentials: true }); // ✅
-      navigate('/auth/login');
+      await axios.post("http://localhost:5000/api/auth/signup", formData, {
+        withCredentials: true,
+      });
+      navigate("/auth/login");
     } catch (err) {
-      console.error('Signup Error:', err.response?.data?.message || err.message);
+      console.error(err);
+      alert(err.response?.data?.message || "Signup failed");
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form
-        onSubmit={handleSubmit}
-        className="w-full max-w-md bg-white p-6 rounded-lg shadow-md"
-      >
-        <h2 className="text-3xl font-bold text-center text-blue-600 mb-4">Join Campus Matrix</h2>
-        <p className="text-lg text-center mb-6">Create your account</p>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-white">
+      <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-center text-indigo-600">Sign Up</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            name="name"
+            placeholder="Name"
+            required
+            value={formData.name}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded"
+          />
+          <input
+            type="email"
+            name="email"
+            placeholder="Email"
+            required
+            value={formData.email}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded"
+          />
+          <input
+            type="password"
+            name="password"
+            placeholder="Password"
+            required
+            value={formData.password}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded"
+          />
 
-        <input
-          name="name"
-          value={form.name}
-          onChange={(e) => setForm({ ...form, name: e.target.value })}
-          placeholder="Full Name"
-          className="w-full p-3 border rounded mb-3"
-          required
-        />
-        <input
-          type="email"
-          name="email"
-          value={form.email}
-          onChange={(e) => setForm({ ...form, email: e.target.value })}
-          placeholder="Email"
-          className="w-full p-3 border rounded mb-3"
-          required
-        />
-        <input
-          type="password"
-          name="password"
-          value={form.password}
-          onChange={(e) => setForm({ ...form, password: e.target.value })}
-          placeholder="Password"
-          className="w-full p-3 border rounded mb-3"
-          required
-        />
-
-        <select
-          name="year"
-          value={form.year}
-          onChange={(e) => setForm({ ...form, year: e.target.value })}
-          className="w-full p-3 border rounded mb-3"
-          required
-        >
-          <option value="1">First Year</option>
-          <option value="2">Second Year</option>
-          <option value="3">Third Year</option>
-          <option value="4">Fourth Year</option>
-        </select>
-
-        <select
-          name="role"
-          value={form.role}
-          onChange={(e) => setForm({ ...form, role: e.target.value })}
-          className="w-full p-3 border rounded mb-4"
-          required
-        >
-          {parseInt(form.year) < 4 && <option value="mentee">Mentee</option>}
-          {parseInt(form.year) >= 2 && <option value="mentor">Mentor</option>}
-        </select>
-
-        <Button
-          type="submit"
-          className="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700 cursor-pointer"
-        >
-          Sign Up
-        </Button>
-
-        <p className="text-center mt-4 text-sm">
-          Already have an account?{" "}
-          <span
-            className="text-blue-600 cursor-pointer hover:underline"
-            onClick={() => navigate("/auth/login")}
+          <select
+            name="year"
+            required
+            value={formData.year}
+            onChange={handleChange}
+            className="w-full px-4 py-2 border rounded bg-white"
           >
-            Log In
-          </span>
+            <option value="">Select Year</option>
+            <option value="1">1st Year</option>
+            <option value="2">2nd Year</option>
+            <option value="3">3rd Year</option>
+            <option value="4">4th Year</option>
+          </select>
+
+          <select
+            name="role"
+            required
+            value={formData.role}
+            onChange={handleChange}
+            disabled={roleDisabled}
+            className="w-full px-4 py-2 border rounded bg-white"
+          >
+            <option value="">Select Role</option>
+            <option value="mentee">Mentee</option>
+            <option value="mentor">Mentor</option>
+          </select>
+
+          <button
+            type="submit"
+            className="w-full bg-indigo-600 text-white py-2 rounded hover:bg-indigo-700 transition duration-200"
+          >
+            Sign Up
+          </button>
+        </form>
+        <p className="mt-4 text-center text-sm">
+          Already have an account?{" "}
+          <a href="/auth/login" className="text-indigo-600 hover:underline">
+            Login
+          </a>
         </p>
-      </form>
+      </div>
     </div>
   );
-}
+};
+
+export default Signup;

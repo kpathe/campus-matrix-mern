@@ -71,9 +71,6 @@ const Landing = () => {
           </Link>
         </motion.div>
       </motion.main>
-
-      <Features />
-      <Testimonials />
     </>
   );
 };

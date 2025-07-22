@@ -5,7 +5,21 @@ import User from '../models/User.js';
 // Signup
 export const signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password, role, year } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !password || !role || !year) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
+
+    // Validate role based on year
+    const yearNum = parseInt(year);
+    if (
+      (yearNum === 1 && role !== 'mentee') ||
+      (yearNum === 4 && role !== 'mentor')
+    ) {
+      return res.status(400).json({ message: 'Invalid role for selected year' });
+    }
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -22,7 +36,9 @@ export const signup = async (req, res) => {
       name,
       email,
       password: hashedPassword,
-      hasProfile: false, // default
+      role,
+      year,
+      hasProfile: false,
     });
 
     await user.save();
@@ -33,6 +49,7 @@ export const signup = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 };
+
 
 // LOGIN CONTROLLER
 export const login = async (req, res) => {
@@ -77,4 +94,20 @@ export const login = async (req, res) => {
     res.status(500).json({ message: 'Server error.' });
   }
 };
+
+export const getMe = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+
+export const logoutUser = (req, res) => {
+  res.clearCookie("token").status(200).json({ message: "Logged out successfully" });
+};
+
 
