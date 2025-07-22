@@ -1,15 +1,26 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const dotenv = require('dotenv');
-const cors = require('cors');
+import express from 'express';
+import mongoose from 'mongoose';
+import dotenv from 'dotenv';
+import cors from 'cors';
+import cookieParser from 'cookie-parser'; // ✅ NEW
+import authRoutes from './routes/authRoutes.js'; // ✅ Add this line
 
 dotenv.config();
 
 const app = express();
-app.use(cors());
+
+app.use(cors({
+  origin: 'http://localhost:5173', // ✅ Your frontend port
+  credentials: true               // ✅ Important for cookies
+}));
+
+app.use(cookieParser());          // ✅ NEW
 app.use(express.json());
 
-// Example test route
+// Routes
+app.use('/api/auth', authRoutes); // ✅ Register routes
+
+// Test route
 app.get('/', (req, res) => {
   res.send('API is running...');
 });

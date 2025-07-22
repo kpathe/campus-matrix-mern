@@ -8,8 +8,13 @@ import DropdownMenu from "../components/ui/dropdown-menu";
 export default function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Dummy user for now (simulate session)
-  const [user, setUser] = useState(null); // Replace this with actual auth state later
+  // Dummy user — replace this with actual auth
+  const [user, setUser] = useState({
+    name: "John Doe",
+    role: "mentee", // or "mentor"
+    image: "/avatar.png",
+  });
+
   const isLoading = false;
 
   useEffect(() => {
@@ -23,46 +28,49 @@ export default function Navbar() {
   }, []);
 
   const handleLogout = () => {
-    // Replace with actual logout logic
-    setUser(null);
+    setUser(null); // Replace with actual logout
     setIsMobileMenuOpen(false);
   };
+
+  const isLoggedIn = !!user;
 
   return (
     <nav className="bg-white shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
-          {/* Logo */}
           <Link to="/" className="text-xl font-bold text-blue-600">
             Campus Matrix
           </Link>
 
-          {/* Desktop Nav */}
+          {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
-            {user?.role === "mentor" && (
-              <Link to="/mentees" className="text-gray-700 hover:text-blue-600">
-                My Mentees
-              </Link>
-            )}
-            {user?.role === "mentee" && (
+            {isLoggedIn && user.role === "mentee" && (
               <Link to="/mentors" className="text-gray-700 hover:text-blue-600">
-                Find Mentors
+                Find Mentor
               </Link>
             )}
-
-            <Link to="/goals" className="text-gray-700 hover:text-blue-600">
-              Goals
-            </Link>
-            <Link to="/resources" className="text-gray-700 hover:text-blue-600">
-              Resources
-            </Link>
-            <Link to="/events" className="text-gray-700 hover:text-blue-600">
-              Events
-            </Link>
+            {isLoggedIn && user.role === "mentor" && (
+              <Link to="/mentees" className="text-gray-700 hover:text-blue-600">
+                Find Mentee
+              </Link>
+            )}
+            {isLoggedIn && (
+              <>
+                <Link to="/goals" className="text-gray-700 hover:text-blue-600">
+                  Goals
+                </Link>
+                <Link to="/resources" className="text-gray-700 hover:text-blue-600">
+                  Resources
+                </Link>
+                <Link to="/events" className="text-gray-700 hover:text-blue-600">
+                  Events
+                </Link>
+              </>
+            )}
 
             {isLoading ? (
               <div className="w-8 h-8 rounded-full bg-gray-200 animate-pulse" />
-            ) : user ? (
+            ) : isLoggedIn ? (
               <DropdownMenu
                 trigger={<Avatar src={user.image} alt={user.name} />}
                 items={[
@@ -83,7 +91,7 @@ export default function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu button */}
+          {/* Mobile Menu Toggle */}
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -111,51 +119,55 @@ export default function Navbar() {
           </div>
 
           <div className="flex flex-col space-y-4">
-            {user?.role === "mentor" && (
-              <Link
-                to="/mentees"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="text-lg text-gray-700 hover:text-blue-600"
-              >
-                My Mentees
-              </Link>
-            )}
-            {user?.role === "mentee" && (
+            {isLoggedIn && user.role === "mentee" && (
               <Link
                 to="/mentors"
                 onClick={() => setIsMobileMenuOpen(false)}
                 className="text-lg text-gray-700 hover:text-blue-600"
               >
-                Find Mentors
+                Find Mentor
               </Link>
             )}
-            <Link
-              to="/goals"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-lg text-gray-700 hover:text-blue-600"
-            >
-              Goals
-            </Link>
-            <Link
-              to="/resources"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-lg text-gray-700 hover:text-blue-600"
-            >
-              Resources
-            </Link>
-            <Link
-              to="/events"
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="text-lg text-gray-700 hover:text-blue-600"
-            >
-              Events
-            </Link>
+            {isLoggedIn && user.role === "mentor" && (
+              <Link
+                to="/mentees"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="text-lg text-gray-700 hover:text-blue-600"
+              >
+                Find Mentee
+              </Link>
+            )}
+            {isLoggedIn && (
+              <>
+                <Link
+                  to="/goals"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-lg text-gray-700 hover:text-blue-600"
+                >
+                  Goals
+                </Link>
+                <Link
+                  to="/resources"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-lg text-gray-700 hover:text-blue-600"
+                >
+                  Resources
+                </Link>
+                <Link
+                  to="/events"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="text-lg text-gray-700 hover:text-blue-600"
+                >
+                  Events
+                </Link>
+              </>
+            )}
           </div>
 
           <div className="mt-auto pt-6 border-t border-gray-200">
             {isLoading ? (
               <div className="w-full h-10 bg-gray-200 animate-pulse rounded" />
-            ) : user ? (
+            ) : isLoggedIn ? (
               <div className="space-y-4">
                 <Link
                   to="/profile"

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/button';
+import axios from '../api/axios';
 
 export default function Login() {
   const [form, setForm] = useState({ email: '', password: '' });
@@ -11,18 +12,11 @@ export default function Login() {
     e.preventDefault();
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-        credentials: 'include'
-      });
-
-      const data = await res.json();
-      if (!res.ok) return setError(data.message || 'Login failed');
+      const res = await axios.post('/auth/login', form, { withCredentials: true }); // ✅
       navigate('/dashboard');
     } catch (err) {
-      setError('Something went wrong. Try again.',err);
+      const message = err.response?.data?.message || 'Login failed';
+      setError(message);
     }
   };
 
@@ -55,7 +49,7 @@ export default function Login() {
         />
         <Button
           type="submit"
-          className="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700"
+          className="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700 cursor-pointer"
         >
           Log In
         </Button>

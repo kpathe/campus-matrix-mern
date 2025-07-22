@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/button';
+import axios from '../api/axios';
 
 export default function Signup() {
   const [form, setForm] = useState({
@@ -17,16 +18,10 @@ export default function Signup() {
     e.preventDefault();
 
     try {
-      const res = await fetch('http://localhost:5000/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
-        credentials: 'include'
-      });
-
-      if (res.ok) navigate('/auth/login');
+      await axios.post('/auth/signup', form, { withCredentials: true }); // ✅
+      navigate('/auth/login');
     } catch (err) {
-      console.error(err);
+      console.error('Signup Error:', err.response?.data?.message || err.message);
     }
   };
 
@@ -92,7 +87,7 @@ export default function Signup() {
 
         <Button
           type="submit"
-          className="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700"
+          className="w-full bg-blue-600 text-white p-3 rounded font-semibold hover:bg-blue-700 cursor-pointer"
         >
           Sign Up
         </Button>
