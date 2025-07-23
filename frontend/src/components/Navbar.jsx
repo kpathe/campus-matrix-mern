@@ -57,12 +57,12 @@ export default function Navbar() {
           {/* Desktop Menu */}
           <div className="hidden md:flex items-center space-x-8">
             {isLoggedIn && user?.role === "mentee" && (
-              <Link to="/mentors" className="text-gray-700 hover:text-blue-600">
+              <Link to="/matching" className="text-gray-700 hover:text-blue-600">
                 Find Mentor
               </Link>
             )}
             {isLoggedIn && user?.role === "mentor" && (
-              <Link to="/mentees" className="text-gray-700 hover:text-blue-600">
+              <Link to="/matching" className="text-gray-700 hover:text-blue-600">
                 Find Mentee
               </Link>
             )}
@@ -144,12 +144,12 @@ export default function Navbar() {
 
           <div className="flex flex-col space-y-4">
             {isLoggedIn && user?.role === "mentee" && (
-              <Link to="/mentors" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-700 hover:text-blue-600">
+              <Link to="/matching" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-700 hover:text-blue-600">
                 Find Mentor
               </Link>
             )}
             {isLoggedIn && user?.role === "mentor" && (
-              <Link to="/mentees" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-700 hover:text-blue-600">
+              <Link to="/matching" onClick={() => setIsMobileMenuOpen(false)} className="text-lg text-gray-700 hover:text-blue-600">
                 Find Mentee
               </Link>
             )}
@@ -177,11 +177,6 @@ export default function Navbar() {
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="flex items-center space-x-2 text-lg"
                 >
-                  <Avatar
-                    src={user?.image || "/avatar.png"}
-                    alt={user?.name}
-                    size="8"
-                  />
                   <span>Profile</span>
                 </Link>
                 <button

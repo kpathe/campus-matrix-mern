@@ -16,4 +16,8 @@ router.get("/me", verifyToken, getMe);
 
 router.post("/logout", logoutUser);
 
+router.get("/check-auth", verifyToken, (req, res) => {
+  res.status(200).json({ authenticated: true, user: req.user });
+});
+
 export default router;
