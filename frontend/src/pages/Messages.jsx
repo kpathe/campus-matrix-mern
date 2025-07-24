@@ -15,23 +15,26 @@ const Messages = () => {
   const [currentChat, setCurrentChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
+  const [typing, setTyping] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef();
 
   const formatTime = (dateString) => {
-  const date = new Date(dateString);
-  return date.toLocaleString([], {
-    year: "numeric",
-    month: "short",    // e.g., Jul
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-};
-
+    const date = new Date(dateString);
+    return date.toLocaleString([], {
+      year: "numeric",
+      month: "short",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
 
   const getLoggedInUser = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/auth/me", { withCredentials: true });
+      const res = await axios.get("http://localhost:5000/api/auth/me", {
+        withCredentials: true,
+      });
       setUser(res.data);
       socket.emit("addUser", res.data._id);
     } catch {
@@ -41,7 +44,9 @@ const Messages = () => {
 
   const fetchChats = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/chat", { withCredentials: true });
+      const res = await axios.get("http://localhost:5000/api/chat", {
+        withCredentials: true,
+      });
       const fetchedChats = Array.isArray(res.data) ? res.data : [];
       setChats(fetchedChats);
 
@@ -78,19 +83,57 @@ const Messages = () => {
   }, [currentChat]);
 
   useEffect(() => {
-    socket.on("receiveMessage", (msg) => {
-      if (msg.chat === currentChat?._id) {
+    socket.on("newMessage", (msg) => {
+      if (msg.chat._id === currentChat?._id) {
         setMessages((prev) => [...prev, msg]);
+      }
+      fetchChats(); // update last message preview
+    });
+
+    socket.on("typing", (chatId) => {
+      if (chatId === currentChat?._id) {
+        setIsTyping(true);
+      }
+    });
+
+    socket.on("stopTyping", (chatId) => {
+      if (chatId === currentChat?._id) {
+        setIsTyping(false);
       }
     });
 
     return () => {
-      socket.off("receiveMessage");
+      socket.off("newMessage");
+      socket.off("typing");
+      socket.off("stopTyping");
     };
   }, [currentChat]);
 
+  const handleTyping = (e) => {
+    setMessage(e.target.value);
+
+    if (!typing) {
+      setTyping(true);
+      socket.emit("typing", currentChat._id);
+    }
+
+    let lastTypingTime = new Date().getTime();
+
+    setTimeout(() => {
+      let now = new Date().getTime();
+      let timeDiff = now - lastTypingTime;
+      if (timeDiff >= 2000 && typing) {
+        socket.emit("stopTyping", currentChat._id);
+        setTyping(false);
+      }
+    }, 2000);
+  };
+
   const sendMessage = async () => {
     if (!message.trim() || !currentChat?._id) return;
+
+    socket.emit("stopTyping", currentChat._id);
+    setTyping(false);
 
     try {
       const res = await axios.post(
@@ -103,10 +146,7 @@ const Messages = () => {
       );
       setMessage("");
       setMessages((prev) => [...prev, res.data]);
-      socket.emit("sendMessage", {
-        ...res.data,
-        chat: currentChat._id, // ✅ Ensure chat ID is sent
-      });
+      socket.emit("newMessage", res.data); // ✅ Real-time update
     } catch {
       toast.error("Failed to send message");
     }
@@ -170,7 +210,19 @@ const Messages = () => {
                     : "hover:bg-gray-100"
                 }`}
               >
-                {otherUser?.name || "Self"} ({otherUser?.role || user?.role})
+                <div className="font-medium">
+                  {otherUser?.name || "Self"} ({otherUser?.role})
+                </div>
+                {chat.latestMessage && (
+                  <div className="text-xs text-gray-500 flex justify-between">
+                    <span className="truncate max-w-[70%]">
+                      {chat.latestMessage.content}
+                    </span>
+                    <span className="ml-2 whitespace-nowrap">
+                      {formatTime(chat.latestMessage.createdAt)}
+                    </span>
+                  </div>
+                )}
               </div>
             );
           })
@@ -184,7 +236,8 @@ const Messages = () => {
             <div className="bg-blue-100 p-2 font-semibold rounded-t-md">
               Chat with{" "}
               {
-                currentChat.users.find((u) => u._id !== user?._id)?.name || "Self"
+                currentChat.users.find((u) => u._id !== user?._id)?.name ||
+                "Self"
               }
             </div>
             <div className="flex-1 overflow-y-auto p-4">
@@ -208,12 +261,17 @@ const Messages = () => {
                   </div>
                 );
               })}
+              {isTyping && (
+                <div className="text-sm text-gray-500 italic ml-2 mt-1">
+                  Typing...
+                </div>
+              )}
             </div>
             <div className="p-2 border-t flex gap-2">
               <input
                 type="text"
                 value={message}
-                onChange={(e) => setMessage(e.target.value)}
+                onChange={handleTyping}
                 placeholder="Type your message"
                 className="flex-1 px-3 py-2 border rounded"
               />
