@@ -22,9 +22,6 @@ const Messages = () => {
   const formatTime = (dateString) => {
     const date = new Date(dateString);
     return date.toLocaleString([], {
-      year: "numeric",
-      month: "short",
-      day: "2-digit",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -168,6 +165,28 @@ const Messages = () => {
     scrollRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const groupMessagesByDate = (messages) => {
+    const groups = {};
+
+    messages.forEach((msg) => {
+      const date = new Date(msg.createdAt).toDateString();
+      if (!groups[date]) {
+        groups[date] = [];
+      }
+      groups[date].push(msg);
+    });
+
+    return groups;
+  };
+
+  const getRelativeDate = (dateStr) => {
+    const today = new Date().toDateString();
+    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    if (dateStr === today) return "Today";
+    if (dateStr === yesterday) return "Yesterday";
+    return dateStr;
+  };
+
   return (
     <div className="h-screen flex flex-col sm:flex-row p-2 bg-gray-50">
       <ToastContainer />
@@ -223,31 +242,48 @@ const Messages = () => {
           <>
             <div className="bg-blue-100 p-2 font-semibold rounded-t-md">
               Chat with{" "}
-              {currentChat.users.find((u) => u._id !== user?._id)?.name || "Self"}
+              {currentChat.users.find((u) => u._id !== user?._id)?.name ||
+                "Self"}
             </div>
             <div className="flex-1 overflow-y-auto p-4">
-              {messages.map((msg, index) => {
-                const isSender =
-                  msg.sender === user?._id || msg.sender?._id === user?._id;
-                return (
-                  <div
-                    key={index}
-                    ref={scrollRef}
-                    className={`mb-2 px-4 py-2 rounded-lg max-w-[75%] break-words ${
-                      isSender
-                        ? "ml-auto bg-green-100 text-right w-fit"
-                        : "mr-auto bg-yellow-100 text-left w-fit"
-                    }`}
-                  >
-                    <div>{msg.content}</div>
-                    <div className="text-xs text-gray-500 mt-1">
-                      {formatTime(msg.createdAt)}
+              {Object.entries(groupMessagesByDate(messages)).map(
+                ([date, msgs], idx) => (
+                  <div key={idx}>
+                    <div className="text-center text-sm text-gray-500 my-2">
+                      {getRelativeDate(date)}
                     </div>
+                    {msgs.map((msg, index) => {
+                      const isSender =
+                        msg.sender === user?._id ||
+                        msg.sender?._id === user?._id;
+                      const isRead = msg.readBy?.length > 1;
+
+                      return (
+                        <div
+                          key={index}
+                          ref={scrollRef}
+                          className={`mb-2 px-4 py-2 rounded-lg max-w-[75%] break-words ${
+                            isSender
+                              ? "ml-auto bg-green-100 text-right w-fit"
+                              : "mr-auto bg-yellow-100 text-left w-fit"
+                          }`}
+                        >
+                          <div>{msg.content}</div>
+                          <div className="text-xs text-gray-500 mt-1 flex justify-end gap-1">
+                            {formatTime(msg.createdAt)}
+                            {isSender && <span>{isRead ? "✓✓" : "✓"}</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
-                );
-              })}
+                )
+              )}
+
               {isTyping && (
-                <div className="text-sm italic text-gray-400 mb-2">Typing...</div>
+                <div className="text-sm italic text-gray-400 mb-2">
+                  Typing...
+                </div>
               )}
             </div>
             <div className="p-2 border-t flex gap-2">
