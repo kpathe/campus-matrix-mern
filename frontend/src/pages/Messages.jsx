@@ -17,7 +17,18 @@ const Messages = () => {
   const [message, setMessage] = useState("");
   const scrollRef = useRef();
 
-  // ✅ Get current logged-in user
+  const formatTime = (dateString) => {
+  const date = new Date(dateString);
+  return date.toLocaleString([], {
+    year: "numeric",
+    month: "short",    // e.g., Jul
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+};
+
+
   const getLoggedInUser = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/auth/me", { withCredentials: true });
@@ -28,7 +39,6 @@ const Messages = () => {
     }
   };
 
-  // ✅ Fetch all chats and auto-select first
   const fetchChats = async () => {
     try {
       const res = await axios.get("http://localhost:5000/api/chat", { withCredentials: true });
@@ -43,7 +53,6 @@ const Messages = () => {
     }
   };
 
-  // ✅ Fetch messages for selected chat
   const fetchMessages = async (chatId) => {
     try {
       const res = await axios.get(
@@ -94,7 +103,10 @@ const Messages = () => {
       );
       setMessage("");
       setMessages((prev) => [...prev, res.data]);
-      socket.emit("sendMessage", res.data);
+      socket.emit("sendMessage", {
+        ...res.data,
+        chat: currentChat._id, // ✅ Ensure chat ID is sent
+      });
     } catch {
       toast.error("Failed to send message");
     }
@@ -189,7 +201,10 @@ const Messages = () => {
                         : "mr-auto bg-yellow-100 text-left w-fit"
                     }`}
                   >
-                    {msg.content}
+                    <div>{msg.content}</div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {formatTime(msg.createdAt)}
+                    </div>
                   </div>
                 );
               })}
