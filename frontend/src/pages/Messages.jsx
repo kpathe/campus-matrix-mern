@@ -1,9 +1,7 @@
-// frontend/src/pages/Messages.jsx
-
-import React, { useEffect, useState, useRef } from "react";
-import io from "socket.io-client";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
+import io from "socket.io-client";
+import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 const socket = io("http://localhost:5000", {
@@ -11,96 +9,113 @@ const socket = io("http://localhost:5000", {
 });
 
 const Messages = () => {
+  const [user, setUser] = useState(null);
   const [email, setEmail] = useState("");
-  const [users, setUsers] = useState([]);
-  const [selectedUser, setSelectedUser] = useState(null);
+  const [chats, setChats] = useState([]);
   const [currentChat, setCurrentChat] = useState(null);
-  const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
+  const [message, setMessage] = useState("");
   const scrollRef = useRef();
 
-  // Fetch messages when a chat is selected
-  useEffect(() => {
-    if (currentChat?._id) {
-      axios
-        .get(`/api/messages/${currentChat._id}`, { withCredentials: true })
-        .then((res) => {
-          setMessages(res.data);
-        })
-        .catch((err) => console.error(err));
+  // ✅ Get current logged-in user
+  const getLoggedInUser = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/auth/me", { withCredentials: true });
+      setUser(res.data);
+      socket.emit("addUser", res.data._id);
+    } catch {
+      toast.error("Failed to load user");
     }
-  }, [currentChat]);
+  };
 
-  // Join socket room
+  // ✅ Fetch all chats and auto-select first
+  const fetchChats = async () => {
+    try {
+      const res = await axios.get("http://localhost:5000/api/chat", { withCredentials: true });
+      const fetchedChats = Array.isArray(res.data) ? res.data : [];
+      setChats(fetchedChats);
+
+      if (fetchedChats.length > 0 && !currentChat) {
+        setCurrentChat(fetchedChats[0]);
+      }
+    } catch {
+      toast.error("Failed to load chats");
+    }
+  };
+
+  // ✅ Fetch messages for selected chat
+  const fetchMessages = async (chatId) => {
+    try {
+      const res = await axios.get(
+        `http://localhost:5000/api/messages/${chatId}`,
+        { withCredentials: true }
+      );
+      setMessages(res.data);
+    } catch {
+      toast.error("Failed to load messages");
+    }
+  };
+
+  useEffect(() => {
+    getLoggedInUser();
+    fetchChats();
+  }, []);
+
   useEffect(() => {
     if (currentChat?._id) {
+      fetchMessages(currentChat._id);
       socket.emit("joinRoom", currentChat._id);
     }
   }, [currentChat]);
 
-  // Listen for incoming messages
   useEffect(() => {
-    socket.on("newMessage", (msg) => {
-      setMessages((prev) => [...prev, msg]);
+    socket.on("receiveMessage", (msg) => {
+      if (msg.chat === currentChat?._id) {
+        setMessages((prev) => [...prev, msg]);
+      }
     });
 
     return () => {
-      socket.off("newMessage");
+      socket.off("receiveMessage");
     };
-  }, []);
-
-  const handleSearch = async () => {
-    if (!email.trim()) return;
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/messages/search",
-        { email },
-        { withCredentials: true }
-      );
-      setUsers([res.data]);
-      setEmail("");
-    } catch (error) {
-      toast.error("User not found");
-    }
-  };
-
-  const startChatWithUser = async (user) => {
-    try {
-      const res = await axios.post(
-        "http://localhost:5000/api/chats",
-        { userId: user._id }, // 🔁 Send userId instead of email
-        { withCredentials: true }
-      );
-      setSelectedUser(user);
-      setCurrentChat(res.data); // Set the chat object
-      setMessages([]);
-    } catch (error) {
-      toast.error("Failed to start chat.");
-      console.log(error);
-      
-    }
-  };
+  }, [currentChat]);
 
   const sendMessage = async () => {
     if (!message.trim() || !currentChat?._id) return;
 
-    const msgData = {
-      chatId: currentChat._id,
-      content: message,
-    };
-
-    setMessage("");
-
     try {
       const res = await axios.post(
         "http://localhost:5000/api/messages/send",
-        msgData,
+        {
+          chatId: currentChat._id,
+          content: message,
+        },
         { withCredentials: true }
       );
+      setMessage("");
+      setMessages((prev) => [...prev, res.data]);
       socket.emit("sendMessage", res.data);
-      setMessages((prev) => [...prev, { ...res.data, fromSelf: true }]);
-    } catch (err) {
-      toast.error("Failed to send");
+    } catch {
+      toast.error("Failed to send message");
+    }
+  };
+
+  const startNewChat = async () => {
+    if (!email.trim()) return;
+    try {
+      const res = await axios.post(
+        "http://localhost:5000/api/chat",
+        { email },
+        { withCredentials: true }
+      );
+      setEmail("");
+      setChats((prev) => {
+        const exists = prev.find((chat) => chat._id === res.data._id);
+        return exists ? prev : [res.data, ...prev];
+      });
+      setCurrentChat(res.data);
+    } catch {
+      toast.error("User not found or cannot start chat");
     }
   };
 
@@ -109,95 +124,97 @@ const Messages = () => {
   }, [messages]);
 
   return (
-    <div className="h-screen p-4 bg-gray-50">
+    <div className="h-screen flex flex-col sm:flex-row p-2 bg-gray-50">
       <ToastContainer />
-      <div className="mb-4 flex gap-2">
+      {/* Sidebar */}
+      <div className="sm:w-1/4 w-full sm:pr-4 mb-4 sm:mb-0 border-r">
+        <h2 className="text-lg font-semibold mb-2">Chats</h2>
         <input
           type="email"
-          placeholder="Search user by email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="px-3 py-2 border rounded-md w-64"
+          placeholder="Start chat by email"
+          className="w-full mb-2 px-3 py-2 border rounded"
         />
         <button
-          onClick={handleSearch}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
+          onClick={startNewChat}
+          className="w-full bg-blue-600 text-white px-3 py-2 mb-4 rounded cursor-pointer"
         >
-          Search
+          Start Chat
         </button>
-      </div>
 
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-1/4 border-r pr-4">
-          <h2 className="text-lg font-semibold mb-2">Users</h2>
-          {users.map((user) => (
-            <div key={user._id} className="mb-2">
+        {chats.length === 0 ? (
+          <p className="text-sm text-gray-500">No chats yet</p>
+        ) : (
+          chats.map((chat) => {
+            const otherUser = chat.users.find((u) => u._id !== user?._id);
+            return (
               <div
-                className={`cursor-pointer px-3 py-2 rounded ${
-                  selectedUser?._id === user._id
-                    ? "bg-blue-100"
+                key={chat._id}
+                onClick={() => setCurrentChat(chat)}
+                className={`cursor-pointer px-3 py-2 rounded mb-2 ${
+                  currentChat?._id === chat._id
+                    ? "bg-blue-200"
                     : "hover:bg-gray-100"
                 }`}
               >
-                <div>
-                  {user.name} ({user.email})
-                </div>
-                <button
-                  onClick={() => startChatWithUser(user)}
-                  className="text-sm text-blue-600 underline"
-                >
-                  Start Chat
-                </button>
+                {otherUser?.name || "Self"} ({otherUser?.role || user?.role})
               </div>
-            </div>
-          ))}
-        </div>
+            );
+          })
+        )}
+      </div>
 
-        {/* Chat Area */}
-        <div className="w-3/4 pl-4 flex flex-col h-[80vh] border rounded-md">
-          {selectedUser && currentChat ? (
-            <>
-              <div className="bg-blue-100 p-2 font-semibold">
-                Chat with {selectedUser.name}
-              </div>
-              <div className="flex-1 overflow-y-auto p-4">
-                {messages.map((msg, index) => (
+      {/* Chat window */}
+      <div className="sm:w-3/4 w-full flex flex-col border rounded-md h-[85vh]">
+        {currentChat ? (
+          <>
+            <div className="bg-blue-100 p-2 font-semibold rounded-t-md">
+              Chat with{" "}
+              {
+                currentChat.users.find((u) => u._id !== user?._id)?.name || "Self"
+              }
+            </div>
+            <div className="flex-1 overflow-y-auto p-4">
+              {messages.map((msg, index) => {
+                const isSender =
+                  msg.sender === user?._id || msg.sender?._id === user?._id;
+                return (
                   <div
                     key={index}
                     ref={scrollRef}
-                    className={`mb-2 p-2 rounded max-w-[60%] ${
-                      msg.sender?._id === selectedUser._id || msg.fromSelf
-                        ? "ml-auto bg-green-100"
-                        : "mr-auto bg-gray-200"
+                    className={`mb-2 px-4 py-2 rounded-lg max-w-[75%] break-words ${
+                      isSender
+                        ? "ml-auto bg-green-100 text-right w-fit"
+                        : "mr-auto bg-yellow-100 text-left w-fit"
                     }`}
                   >
                     {msg.content}
                   </div>
-                ))}
-              </div>
-              <div className="p-2 border-t flex gap-2">
-                <input
-                  type="text"
-                  placeholder="Type your message..."
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  className="flex-1 border px-3 py-2 rounded-md"
-                />
-                <button
-                  onClick={sendMessage}
-                  className="bg-blue-600 text-white px-4 py-2 rounded"
-                >
-                  Send
-                </button>
-              </div>
-            </>
-          ) : (
-            <div className="text-center m-auto text-gray-500">
-              Select or search a user to start chatting.
+                );
+              })}
             </div>
-          )}
-        </div>
+            <div className="p-2 border-t flex gap-2">
+              <input
+                type="text"
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                placeholder="Type your message"
+                className="flex-1 px-3 py-2 border rounded"
+              />
+              <button
+                onClick={sendMessage}
+                className="bg-blue-600 text-white px-4 py-2 rounded cursor-pointer"
+              >
+                Send
+              </button>
+            </div>
+          </>
+        ) : (
+          <div className="m-auto text-gray-500">
+            Select or start a chat to begin messaging.
+          </div>
+        )}
       </div>
     </div>
   );

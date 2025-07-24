@@ -1,10 +1,10 @@
 import express from "express";
-import { accessChat, fetchChats } from "../controllers/chatController.js";
+import { accessOrCreateChat, getAllChats } from "../controllers/chatController.js";
 import verifyToken from "../middleware/verifyToken.js";
 
 const router = express.Router();
 
-router.post("/", verifyToken, accessChat); // Search or create chat
-router.get("/", verifyToken, fetchChats); // Fetch all chats for user
+router.post("/", verifyToken, accessOrCreateChat);
+router.get("/", verifyToken, getAllChats);
 
 export default router;

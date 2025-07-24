@@ -1,36 +1,36 @@
 import Chat from "../models/Chat.js";
 import User from "../models/User.js";
 
-// Access or create a chat between the logged in user and another user
-export const accessChat = async (req, res) => {
-  const { userId } = req.body;
+export const accessOrCreateChat = async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) return res.status(400).json({ message: "Email required" });
 
   try {
-    const targetUser = await User.findById(userId); // use ID not email
-
-    if (!targetUser) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    // console.log("This is email inside controller chat",email)
+    const userToChatWith = await User.findOne({ email });
+    // console.log("User to chat with is",userToChatWith);
+    
+    if (!userToChatWith) return res.status(404).json({ message: "User not found" });
 
     let chat = await Chat.findOne({
-      users: { $all: [req.user.id, targetUser.id] },
+      users: { $all: [req.user.id, userToChatWith._id] },
     }).populate("users", "-password");
 
     if (!chat) {
       chat = await Chat.create({
-        users: [req.user.id, targetUser.id],
+        users: [req.user.id, userToChatWith._id],
       });
       chat = await chat.populate("users", "-password");
     }
 
     res.status(200).json(chat);
-  } catch (error) {
-    res.status(500).json({ message: "Server Error", error });
+  } catch (err) {
+    res.status(500).json({ message: "Error accessing chat", error: err });
   }
 };
 
-
-export const fetchChats = async (req, res) => {
+export const getAllChats = async (req, res) => {
   try {
     const chats = await Chat.find({ users: req.user.id })
       .populate("users", "-password")
@@ -38,7 +38,7 @@ export const fetchChats = async (req, res) => {
       .sort({ updatedAt: -1 });
 
     res.status(200).json(chats);
-  } catch (error) {
-    res.status(500).json({ message: "Server Error", error });
+  } catch (err) {
+    res.status(500).json({ message: "Error fetching chats", error: err });
   }
 };

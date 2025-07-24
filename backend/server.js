@@ -11,6 +11,9 @@ import messageRoutes from "./routes/messageRoutes.js";
 import http from "http";
 import { Server } from "socket.io";
 
+
+
+
 dotenv.config();
 
 const app = express();
@@ -37,7 +40,7 @@ app.use("/api/profile", profileRoutes);
 
 app.use("/api/goals", goalRoutes);
 
-app.use("/api/chats", chatRoutes);
+app.use("/api/chat", chatRoutes);
 app.use("/api/messages", messageRoutes);
 
 // MongoDB connection
@@ -65,31 +68,38 @@ const users = new Map();
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
 
+  // Map userId to socket.id
   socket.on("addUser", (userId) => {
-    users.set(userId, socket.id);
-  });
-
-  socket.on("sendMessage", ({ senderId, receiverId, text }) => {
-    const receiverSocketId = users.get(receiverId);
-
-    if (receiverSocketId) {
-      io.to(receiverSocketId).emit("receiveMessage", {
-        senderId,
-        text,
-        createdAt: new Date(),
-      });
+    if (userId) {
+      users.set(userId, socket.id);
     }
   });
 
+  // Forward new messages
+  socket.on("newMessage", (message) => {
+    const chatUsers = message.chat.users;
+
+    chatUsers.forEach((user) => {
+      if (user._id === message.sender._id) return; // Don't emit to sender
+
+      const receiverSocket = users.get(user._id);
+      if (receiverSocket) {
+        io.to(receiverSocket).emit("newMessage", message);
+      }
+    });
+  });
+
+  // Cleanup on disconnect
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
-    for (let [key, value] of users.entries()) {
-      if (value === socket.id) {
-        users.delete(key);
+    for (let [userId, socketId] of users.entries()) {
+      if (socketId === socket.id) {
+        users.delete(userId);
         break;
       }
     }
   });
 });
+
 
 server.listen(PORT, () => console.log(`Server is now running on port ${PORT}`));
