@@ -15,9 +15,9 @@ const Messages = () => {
   const [currentChat, setCurrentChat] = useState(null);
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
-  const [typing, setTyping] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
   const scrollRef = useRef();
+  const typingTimeoutRef = useRef(null);
 
   const formatTime = (dateString) => {
     const date = new Date(dateString);
@@ -83,12 +83,14 @@ const Messages = () => {
   }, [currentChat]);
 
   useEffect(() => {
-    socket.on("newMessage", (msg) => {
+    const handleNewMessage = (msg) => {
       if (msg.chat._id === currentChat?._id) {
         setMessages((prev) => [...prev, msg]);
       }
       fetchChats(); // update last message preview
-    });
+    };
+
+    socket.on("newMessage", handleNewMessage);
 
     socket.on("typing", (chatId) => {
       if (chatId === currentChat?._id) {
@@ -103,7 +105,7 @@ const Messages = () => {
     });
 
     return () => {
-      socket.off("newMessage");
+      socket.off("newMessage", handleNewMessage);
       socket.off("typing");
       socket.off("stopTyping");
     };
@@ -111,29 +113,19 @@ const Messages = () => {
 
   const handleTyping = (e) => {
     setMessage(e.target.value);
+    socket.emit("typing", currentChat._id);
 
-    if (!typing) {
-      setTyping(true);
-      socket.emit("typing", currentChat._id);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
     }
 
-    let lastTypingTime = new Date().getTime();
-
-    setTimeout(() => {
-      let now = new Date().getTime();
-      let timeDiff = now - lastTypingTime;
-      if (timeDiff >= 2000 && typing) {
-        socket.emit("stopTyping", currentChat._id);
-        setTyping(false);
-      }
+    typingTimeoutRef.current = setTimeout(() => {
+      socket.emit("stopTyping", currentChat._id);
     }, 2000);
   };
 
   const sendMessage = async () => {
     if (!message.trim() || !currentChat?._id) return;
-
-    socket.emit("stopTyping", currentChat._id);
-    setTyping(false);
 
     try {
       const res = await axios.post(
@@ -146,7 +138,8 @@ const Messages = () => {
       );
       setMessage("");
       setMessages((prev) => [...prev, res.data]);
-      socket.emit("newMessage", res.data); // ✅ Real-time update
+      socket.emit("newMessage", res.data);
+      socket.emit("stopTyping", currentChat._id);
     } catch {
       toast.error("Failed to send message");
     }
@@ -211,16 +204,11 @@ const Messages = () => {
                 }`}
               >
                 <div className="font-medium">
-                  {otherUser?.name || "Self"} ({otherUser?.role})
+                  {otherUser?.name || "Self"} ({otherUser?.role || user?.role})
                 </div>
                 {chat.latestMessage && (
-                  <div className="text-xs text-gray-500 flex justify-between">
-                    <span className="truncate max-w-[70%]">
-                      {chat.latestMessage.content}
-                    </span>
-                    <span className="ml-2 whitespace-nowrap">
-                      {formatTime(chat.latestMessage.createdAt)}
-                    </span>
+                  <div className="text-xs text-gray-500 truncate">
+                    {chat.latestMessage.content}
                   </div>
                 )}
               </div>
@@ -235,10 +223,7 @@ const Messages = () => {
           <>
             <div className="bg-blue-100 p-2 font-semibold rounded-t-md">
               Chat with{" "}
-              {
-                currentChat.users.find((u) => u._id !== user?._id)?.name ||
-                "Self"
-              }
+              {currentChat.users.find((u) => u._id !== user?._id)?.name || "Self"}
             </div>
             <div className="flex-1 overflow-y-auto p-4">
               {messages.map((msg, index) => {
@@ -262,9 +247,7 @@ const Messages = () => {
                 );
               })}
               {isTyping && (
-                <div className="text-sm text-gray-500 italic ml-2 mt-1">
-                  Typing...
-                </div>
+                <div className="text-sm italic text-gray-400 mb-2">Typing...</div>
               )}
             </div>
             <div className="p-2 border-t flex gap-2">
