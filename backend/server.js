@@ -30,11 +30,11 @@ app.use(cookieParser());
 app.use(express.json());
 
 // Routes
-app.use("/api/auth", authRoutes);
-app.use("/api/profile", profileRoutes);
-app.use("/api/goals", goalRoutes);
-app.use("/api/chat", chatRoutes);
-app.use("/api/messages", messageRoutes);
+// app.use("/api/auth", authRoutes);
+// app.use("/api/profile", profileRoutes);
+// app.use("/api/goals", goalRoutes);
+// app.use("/api/chat", chatRoutes);
+// app.use("/api/messages", messageRoutes);
 
 app.use(express.static(path.join(__dirname, "../frontend/dist")));
 
