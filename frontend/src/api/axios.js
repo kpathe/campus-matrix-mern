@@ -1,8 +1,11 @@
-import axios from 'axios';
+import axios from "axios";
 
 const instance = axios.create({
-  baseURL: '/api',
-  withCredentials: true, // ⬅️ this enables cookies to be sent with requests
+  baseURL: import.meta.env.DEV 
+    ? "http://localhost:5000/api" 
+    : `${import.meta.env.VITE_API_BASE_URL}/api`,
+  withCredentials: true,
 });
 
 export default instance;
+
