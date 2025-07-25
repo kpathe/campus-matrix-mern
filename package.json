@@ -4,7 +4,7 @@
   "scripts": {
     "postinstall": "npm run install-all && npm run build",
     "install-all": "cd frontend && npm install && cd ../backend && npm install",
-    "build": "cd client && npm run build && rm -rf ../backend/client && mv dist ../backend/client",
+    "build": "cd frontend && npm run build && rm -rf ../backend/client && mv dist ../backend/client",
     "start": "cd backend && node index.js"
   }
 }
