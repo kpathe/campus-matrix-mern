@@ -4,3 +4,7 @@ backend/node_modules/
 frontend/node_modules/
 dist/
 build/
+
+backend/public/
+dist/
+.env

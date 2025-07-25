@@ -13,7 +13,8 @@ import messageRoutes from "./routes/messageRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
-
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 dotenv.config();
 
@@ -36,7 +37,8 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
-
+// Serve static files
+app.use(express.static(path.join(__dirname, "client")));
 
 // API Routes
 app.use("/api/auth", authRoutes);
@@ -45,7 +47,10 @@ app.use("/api/goals", goalRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/messages", messageRoutes);
 
-
+// Catch-all route for SPA
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "client", "index.html"));
+});
 
 // MongoDB connection
 mongoose
@@ -111,10 +116,6 @@ io.on("connection", (socket) => {
     }
   });
 });
-
-app.get("/",(req,res)=>{
-  res.send("API is Running Successfully")
-})
 
 server.listen(PORT, () =>
   console.log(`🚀 Server is running on http://localhost:${PORT}`)
