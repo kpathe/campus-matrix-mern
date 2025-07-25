@@ -14,11 +14,12 @@ import messageRoutes from "./routes/messageRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 dotenv.config();
 
 const app = express();
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 app.use(
   cors({
@@ -29,6 +30,8 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
+app.use(express.static(path.join(__dirname, "client")));
+
 // Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
@@ -36,11 +39,15 @@ app.use("/api/goals", goalRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/messages", messageRoutes);
 
-app.use(express.static(path.join(__dirname, "../frontend/dist")));
+// ------------------Deployment----------------------------
 
-// app.get("*", (req, res) => {
-//   res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
-// });
+
+
+app.get(/^\/(?!api).*/, (req, res) => {
+  res.sendFile(path.join(__dirname, "client", "index.html"));
+});
+
+// ------------------Deployment----------------------------
 
 // MongoDB
 mongoose
@@ -104,3 +111,5 @@ io.on("connection", (socket) => {
 });
 
 server.listen(PORT, () => console.log(`✅ Server is running on port ${PORT}`));
+
+
