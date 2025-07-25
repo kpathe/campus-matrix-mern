@@ -17,7 +17,10 @@ export default function Login({ setUser }) {
           setUser(res.data); // <-- update user state if already logged in
           navigate("/dashboard");
         }
-      } catch {}
+      } catch(err) {
+        console.log(err);
+        
+      }
     };
     checkAuth();
   }, [navigate, setUser]);
