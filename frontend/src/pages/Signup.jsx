@@ -1,4 +1,4 @@
-import React, { useState,useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -14,6 +14,7 @@ const Signup = () => {
   });
 
   const [roleDisabled, setRoleDisabled] = useState(false);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     // Check if user is already logged in
@@ -62,20 +63,22 @@ const Signup = () => {
     e.preventDefault();
 
     try {
-      await axios.post("/api/auth/signup", formData, {
+      const res = await axios.post("/api/auth/signup", formData, {
         withCredentials: true,
       });
       navigate("/auth/login");
     } catch (err) {
-      console.error(err);
-      alert(err.response?.data?.message || "Signup failed");
+      const message = err.response?.data?.message || "Signup failed";
+      setError(message);
     }
   };
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-indigo-100 to-white">
       <div className="bg-white p-8 rounded shadow-md w-full max-w-md">
-        <h2 className="text-2xl font-bold mb-6 text-center text-indigo-600">Sign Up</h2>
+        <h2 className="text-2xl font-bold mb-6 text-center text-indigo-600">
+          Sign Up
+        </h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <input
             type="text"
@@ -131,6 +134,8 @@ const Signup = () => {
             <option value="mentee">Mentee</option>
             <option value="mentor">Mentor</option>
           </select>
+
+          {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
 
           <button
             type="submit"

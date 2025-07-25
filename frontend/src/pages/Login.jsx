@@ -1,9 +1,9 @@
-import { useState,useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Button from '../components/ui/button';
 import axios from '../api/axios';
 
-export default function Login() {
+export default function Login({ setUser }) {
   const [form, setForm] = useState({ email: '', password: '' });
   const [error, setError] = useState('');
   const navigate = useNavigate();
@@ -14,18 +14,20 @@ export default function Login() {
       try {
         const res = await axios.get('/auth/me', { withCredentials: true });
         if (res.status === 200) {
+          setUser(res.data); // <-- update user state if already logged in
           navigate('/dashboard');
         }
       } catch {}
     };
     checkAuth();
-  }, [navigate]);
+  }, [navigate, setUser]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     try {
-      const res = await axios.post('/auth/login', form, { withCredentials: true }); // ✅
+      const res = await axios.post('/auth/login', form, { withCredentials: true });
+      setUser(res.data); // <-- update user state after login
       navigate('/dashboard');
     } catch (err) {
       const message = err.response?.data?.message || 'Login failed';

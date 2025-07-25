@@ -1,35 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Menu, X } from "lucide-react";
 import Avatar from "../components/ui/avatar";
 import Button from "../components/ui/button";
 
-export default function Navbar() {
+export default function Navbar({ user, setUser }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [user, setUser] = useState(null);
   const navigate = useNavigate();
-
-  const fetchUser = async () => {
-    try {
-      const res = await fetch("/api/auth/me", {
-        method: "GET",
-        credentials: "include",
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data);
-      } else {
-        setUser(null);
-      }
-    } catch (err) {
-      console.error("Error fetching user:", err);
-      setUser(null);
-    }
-  };
-
-  useEffect(() => {
-    fetchUser();
-  }, []);
 
   const handleLogout = async () => {
     try {
@@ -38,7 +15,7 @@ export default function Navbar() {
         credentials: "include",
       });
       setUser(null);
-      navigate("/auth/login"); // ✅ redirect to landing page after logout
+      navigate("/auth/login");
     } catch (err) {
       console.error("Logout failed:", err);
     }

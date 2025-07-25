@@ -19,7 +19,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 // Pages
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
-import Dashboard from "./pages/Dashboard"; // you should create this
+import Dashboard from "./pages/Dashboard";
 import CreateProfile from "./pages/CreateProfile";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
@@ -57,7 +57,7 @@ function App() {
   return (
     <>
       <Router>
-        <Navbar />
+        <Navbar user={user} setUser={setUser} />
         <Routes>
           <Route
             path="/"
@@ -75,8 +75,8 @@ function App() {
             }
           />
 
-          <Route path="/auth/login" element={<Login />} />
-          <Route path="/auth/signup" element={<Signup />} />
+          <Route path="/auth/login" element={<Login setUser={setUser} />} />
+          <Route path="/auth/signup" element={<Signup setUser={setUser} />} />
           <Route path="/me" element={<Home />} />
 
           <Route
