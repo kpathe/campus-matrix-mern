@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
@@ -14,6 +14,19 @@ const Signup = () => {
   });
 
   const [roleDisabled, setRoleDisabled] = useState(false);
+
+  useEffect(() => {
+    // Check if user is already logged in
+    const checkAuth = async () => {
+      try {
+        const res = await axios.get("/api/auth/me", { withCredentials: true });
+        if (res.status === 200) {
+          navigate("/dashboard");
+        }
+      } catch {}
+    };
+    checkAuth();
+  }, [navigate]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
