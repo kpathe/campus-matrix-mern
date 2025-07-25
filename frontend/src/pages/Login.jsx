@@ -1,21 +1,21 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import Button from '../components/ui/button';
-import axios from '../api/axios';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import Button from "../components/ui/button";
+import axios from "../api/axios";
 
 export default function Login({ setUser }) {
-  const [form, setForm] = useState({ email: '', password: '' });
-  const [error, setError] = useState('');
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     // Check if user is already logged in
     const checkAuth = async () => {
       try {
-        const res = await axios.get('/auth/me', { withCredentials: true });
+        const res = await axios.get("/auth/me", { withCredentials: true });
         if (res.status === 200) {
           setUser(res.data); // <-- update user state if already logged in
-          navigate('/dashboard');
+          navigate("/dashboard");
         }
       } catch {}
     };
@@ -26,11 +26,13 @@ export default function Login({ setUser }) {
     e.preventDefault();
 
     try {
-      const res = await axios.post('/auth/login', form, { withCredentials: true });
-      setUser(res.data); // <-- update user state after login
-      navigate('/dashboard');
+      await axios.post("/auth/login", form, { withCredentials: true });
+      // Fetch user info after login
+      const userRes = await axios.get("/auth/me", { withCredentials: true });
+      setUser(userRes.data); // <-- always up-to-date user object
+      navigate("/dashboard");
     } catch (err) {
-      const message = err.response?.data?.message || 'Login failed';
+      const message = err.response?.data?.message || "Login failed";
       setError(message);
     }
   };
@@ -41,7 +43,9 @@ export default function Login({ setUser }) {
         onSubmit={handleSubmit}
         className="w-full max-w-md bg-white p-6 rounded-lg shadow-md"
       >
-        <h2 className="text-3xl font-bold text-center text-blue-600 mb-4">Campus Matrix</h2>
+        <h2 className="text-3xl font-bold text-center text-blue-600 mb-4">
+          Campus Matrix
+        </h2>
         <p className="text-lg text-center mb-6">Log in to your account</p>
         {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
         <input

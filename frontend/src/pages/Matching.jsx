@@ -79,7 +79,7 @@ const Matching = () => {
                   {mentor.expertise}
                 </p>
                 <button
-                  className="mt-4 w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"
+                  className="cursor-pointer mt-4 w-full bg-green-500 text-white py-2 rounded hover:bg-green-600"
                   onClick={() => toast.success("Mentor request sent!")}
                 >
                   Request Mentor
