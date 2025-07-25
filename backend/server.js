@@ -10,7 +10,6 @@ import profileRoutes from "./routes/profileRoutes.js";
 import goalRoutes from "./routes/goalRoutes.js";
 import chatRoutes from "./routes/chatRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
-
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -21,57 +20,68 @@ dotenv.config();
 
 const app = express();
 
+// CORS
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL, // e.g. deployed frontend URL
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
+
+// Middleware
 app.use(cookieParser());
 app.use(express.json());
 
+// Serve static files
 app.use(express.static(path.join(__dirname, "client")));
 
-// Routes
+// API Routes
 app.use("/api/auth", authRoutes);
 app.use("/api/profile", profileRoutes);
 app.use("/api/goals", goalRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/messages", messageRoutes);
 
-// ------------------Deployment----------------------------
-
-
-
+// Catch-all route for SPA
 app.get(/^\/(?!api).*/, (req, res) => {
   res.sendFile(path.join(__dirname, "client", "index.html"));
 });
 
-// ------------------Deployment----------------------------
-
-// MongoDB
+// MongoDB connection
 mongoose
   .connect(process.env.MONGO_URI, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
-  .then(() => console.log("MongoDB connected"))
-  .catch((err) => console.log(err));
+  .then(() => console.log("✅ MongoDB connected"))
+  .catch((err) => console.error("❌ MongoDB connection error:", err));
 
-// Server & Socket.io
+// Start server and setup Socket.IO
 const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
   },
 });
 
+// Socket.IO logic
 const users = new Map();
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.id);
+  console.log("🔌 User connected:", socket.id);
 
   socket.on("addUser", (userId) => {
     if (userId) users.set(userId, socket.id);
@@ -100,7 +110,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    console.log("❌ User disconnected:", socket.id);
     for (let [userId, sockId] of users.entries()) {
       if (sockId === socket.id) {
         users.delete(userId);
@@ -110,6 +120,6 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT, () => console.log(`✅ Server is running on port ${PORT}`));
-
-
+server.listen(PORT, () =>
+  console.log(`🚀 Server is running on http://localhost:${PORT}`)
+);
