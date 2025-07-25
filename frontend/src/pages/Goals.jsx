@@ -10,7 +10,7 @@ const Goals = () => {
 
   const fetchGoals = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/goals", {
+      const res = await fetch("/api/goals", {
         credentials: "include",
       });
       const data = await res.json();
@@ -24,7 +24,7 @@ const Goals = () => {
     e.preventDefault(); // prevents page reload
 
     try {
-      const res = await fetch("http://localhost:5000/api/goals", {
+      const res = await fetch("/api/goals", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
@@ -47,7 +47,7 @@ const Goals = () => {
 
   const handleDeleteGoal = async (id) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/goals/${id}`, {
+      const res = await fetch(`/api/goals/${id}`, {
         method: "DELETE",
         credentials: "include",
       });
@@ -62,7 +62,7 @@ const Goals = () => {
 
   const toggleComplete = async (id, completed) => {
     try {
-      const res = await fetch(`http://localhost:5000/api/goals/${id}`, {
+      const res = await fetch(`/api/goals/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         credentials: "include",

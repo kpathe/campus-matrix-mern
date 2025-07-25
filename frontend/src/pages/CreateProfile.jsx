@@ -23,7 +23,7 @@ const CreateProfile = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/profile/create-profile",
+        "/api/profile/create-profile",
         {
           ...formData,
           skills: formData.skills.split(",").map((s) => s.trim()),

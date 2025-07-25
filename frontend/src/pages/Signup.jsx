@@ -49,7 +49,7 @@ const Signup = () => {
     e.preventDefault();
 
     try {
-      await axios.post("http://localhost:5000/api/auth/signup", formData, {
+      await axios.post("/api/auth/signup", formData, {
         withCredentials: true,
       });
       navigate("/auth/login");

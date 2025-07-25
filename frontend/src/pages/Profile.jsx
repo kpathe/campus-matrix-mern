@@ -10,7 +10,7 @@ const Profile = () => {
     const fetchData = async () => {
       try {
         // Fetch user info
-        const userRes = await fetch("http://localhost:5000/api/auth/me", {
+        const userRes = await fetch("/api/auth/me", {
           credentials: "include",
         });
 
@@ -23,7 +23,7 @@ const Profile = () => {
         setUser(userData);
 
         // Fetch profile info
-        const profileRes = await fetch("http://localhost:5000/api/profile/me", {
+        const profileRes = await fetch("/api/profile/me", {
           credentials: "include",
         });
 

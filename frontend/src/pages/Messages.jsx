@@ -4,7 +4,7 @@ import io from "socket.io-client";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
-const socket = io("http://localhost:5000", {
+const socket = io("", {
   withCredentials: true,
 });
 
@@ -29,7 +29,7 @@ const Messages = () => {
 
   const getLoggedInUser = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/auth/me", {
+      const res = await axios.get("/api/auth/me", {
         withCredentials: true,
       });
       setUser(res.data);
@@ -41,7 +41,7 @@ const Messages = () => {
 
   const fetchChats = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/chat", {
+      const res = await axios.get("/api/chat", {
         withCredentials: true,
       });
       const fetchedChats = Array.isArray(res.data) ? res.data : [];
@@ -58,7 +58,7 @@ const Messages = () => {
   const fetchMessages = async (chatId) => {
     try {
       const res = await axios.get(
-        `http://localhost:5000/api/messages/${chatId}`,
+        `/api/messages/${chatId}`,
         { withCredentials: true }
       );
       setMessages(res.data);
@@ -126,7 +126,7 @@ const Messages = () => {
 
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/messages/send",
+        "/api/messages/send",
         {
           chatId: currentChat._id,
           content: message,
@@ -146,7 +146,7 @@ const Messages = () => {
     if (!email.trim()) return;
     try {
       const res = await axios.post(
-        "http://localhost:5000/api/chat",
+        "/api/chat",
         { email },
         { withCredentials: true }
       );

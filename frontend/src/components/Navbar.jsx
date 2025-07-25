@@ -11,7 +11,7 @@ export default function Navbar() {
 
   const fetchUser = async () => {
     try {
-      const res = await fetch("http://localhost:5000/api/auth/me", {
+      const res = await fetch("/api/auth/me", {
         method: "GET",
         credentials: "include",
       });
@@ -33,7 +33,7 @@ export default function Navbar() {
 
   const handleLogout = async () => {
     try {
-      await fetch("http://localhost:5000/api/auth/logout", {
+      await fetch("/api/auth/logout", {
         method: "POST",
         credentials: "include",
       });
