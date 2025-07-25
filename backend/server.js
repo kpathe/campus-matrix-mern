@@ -21,20 +21,14 @@ dotenv.config();
 const app = express();
 
 // CORS
-const allowedOrigins = [
-  "http://localhost:5173",
-  process.env.FRONTEND_URL, // e.g. deployed frontend URL
-];
+
 
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: [
+      "http://localhost:5173",
+      "https://campus-matrix.onrender.com"
+    ],
     credentials: true,
   })
 );
@@ -72,7 +66,10 @@ const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: [
+      "http://localhost:5173",
+      "https://campus-matrix.onrender.com"
+    ],
     credentials: true,
   },
 });
