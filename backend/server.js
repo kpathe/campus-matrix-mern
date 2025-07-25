@@ -21,12 +21,17 @@ dotenv.config();
 
 const app = express();
 
+// ...existing code...
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://campus-matrix-backend.onrender.com"
+    ],
     credentials: true,
   })
 );
+// ...existing code...
 app.use(cookieParser());
 app.use(express.json());
 
@@ -61,12 +66,17 @@ mongoose
 // Server & Socket.io
 const PORT = process.env.PORT || 5000;
 const server = http.createServer(app);
+// ...existing code...
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: [
+      "http://localhost:5173",
+      "https://campus-matrix-backend.onrender.com"
+    ],
     credentials: true,
   },
 });
+// ...existing code...
 
 const users = new Map();
 
