@@ -82,7 +82,11 @@ const Messages = () => {
   useEffect(() => {
     const handleNewMessage = (msg) => {
       if (msg.chat._id === currentChat?._id) {
-        setMessages((prev) => [...prev, msg]);
+        setMessages((prev) => {
+          // Only add if not already present
+          if (prev.some((m) => m._id === msg._id)) return prev;
+          return [...prev, msg];
+        });
       }
       fetchChats(); // update last message preview
     };
