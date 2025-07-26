@@ -26,6 +26,8 @@ import Profile from "./pages/Profile";
 import Matching from "./pages/Matching";
 import Goals from "./pages/Goals";
 import Messages from "./pages/Messages";
+import Resources from "./pages/Resources"
+import Events from "./pages/Events"
 
 function App() {
   const [user, setUser] = useState(null);
@@ -78,6 +80,13 @@ function App() {
           <Route path="/auth/login" element={<Login setUser={setUser} />} />
           <Route path="/auth/signup" element={<Signup setUser={setUser} />} />
           <Route path="/me" element={<Home />} />
+
+          <Route path="/resources" element={<ProtectedRoute>
+                <Resources />
+              </ProtectedRoute>}/>
+          <Route path="/events" element={<ProtectedRoute>
+                <Events />
+              </ProtectedRoute>}/>
 
           <Route
             path="/create-profile"
