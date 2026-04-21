@@ -38,6 +38,8 @@ const profileSchema = new mongoose.Schema(
     githubUsername: { type: String },
     leetcodeUsername: { type: String },
     gfgUsername: { type: String },
+    profileImage: { type: String },
+    coverImage: { type: String },
     gamificationPoints: {
       type: Number,
       default: 0,

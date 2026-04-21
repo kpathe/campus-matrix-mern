@@ -99,10 +99,13 @@ const Profile = () => {
         
         {/* Header Profile Section */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 relative overflow-hidden">
-           <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 object-cover"></div>
+           <div 
+             className={`absolute top-0 left-0 w-full h-32 ${!profile?.coverImage ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" : ""}`}
+             style={profile?.coverImage ? { backgroundImage: `url(${profile.coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
+           ></div>
            <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start mt-12">
               <div className="w-24 h-24 bg-white rounded-2xl shadow-md flex-shrink-0 border-4 border-white overflow-hidden">
-                 <img src={user.image || "/avatar.png"} alt="User" className="w-full h-full object-cover" />
+                 <img src={profile?.profileImage || user.image || "/avatar.png"} alt="User" className="w-full h-full object-cover" />
               </div>
               <div className="flex-1">
                  <h1 className="text-3xl font-extrabold text-slate-800">{user.name}</h1>

@@ -4,11 +4,10 @@ import { aggregateStats } from "../utils/statAggregator.js";
 
 export const createProfile = async (req, res) => {
   try {
-    const { department, bio, skills, interests, languages, gender, linkedin } =
+    const { department, bio, skills, interests, languages, gender, linkedin, profileImage, coverImage } =
       req.body;
 
-    const profile = new Profile({
-      user: req.user.id, // req.user is set in verifyToken middleware
+    const profileData = {
       department,
       bio,
       skills,
@@ -16,9 +15,15 @@ export const createProfile = async (req, res) => {
       languages,
       gender,
       linkedin,
-    });
+      profileImage,
+      coverImage
+    };
 
-    await profile.save();
+    const profile = await Profile.findOneAndUpdate(
+      { user: req.user.id },
+      { $set: profileData },
+      { new: true, upsert: true } // Create if doesn't exist, otherwise update
+    );
 
     // Update the hasProfile field to true
     await User.findByIdAndUpdate(req.user.id, { hasProfile: true });
