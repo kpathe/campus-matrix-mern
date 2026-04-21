@@ -17,8 +17,8 @@ export const createProfile = async (req, res) => {
       linkedin,
     };
 
-    if (profileImage) profileData.profileImage = profileImage;
-    if (coverImage) profileData.coverImage = coverImage;
+    // if (profileImage) profileData.profileImage = profileImage;
+    // if (coverImage) profileData.coverImage = coverImage;
 
     const profile = await Profile.findOneAndUpdate(
       { user: req.user.id },
