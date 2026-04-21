@@ -98,30 +98,34 @@ const Profile = () => {
       <div className="max-w-5xl mx-auto space-y-8">
         
         {/* Header Profile Section */}
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 relative overflow-hidden">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+           {/* Banner */}
            <div 
-             className={`absolute top-0 left-0 w-full h-32 ${!profile?.coverImage ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" : ""}`}
+             className={`w-full h-32 ${!profile?.coverImage ? "bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500" : ""}`}
              style={profile?.coverImage ? { backgroundImage: `url(${profile.coverImage})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}}
            ></div>
-           <div className="relative z-10 flex flex-col md:flex-row gap-6 items-start mt-12">
-              <div className="w-24 h-24 bg-white rounded-2xl shadow-md flex-shrink-0 border-4 border-white overflow-hidden">
-                 <img src={profile?.profileImage || user.image || "/avatar.png"} alt="User" className="w-full h-full object-cover" />
+           
+           <div className="px-6 md:px-10 pb-8 relative z-10 flex flex-col md:flex-row gap-6 items-start">
+              {/* Avatar overlapping banner */}
+              <div className="w-32 h-32 bg-white rounded-2xl shadow-md flex-shrink-0 border-4 border-white overflow-hidden -mt-12 z-20 relative">
+                 <img src={profile?.profileImage || user?.image || "/avatar.png"} alt="User" className="w-full h-full object-cover" />
               </div>
-              <div className="flex-1">
-                 <h1 className="text-3xl font-extrabold text-slate-800">{user.name}</h1>
-                 <p className="text-slate-500 font-medium">{profile?.department || "Department Not Set"} • {user.roles.join(', ').toUpperCase()}</p>
-                 <p className="mt-2 text-slate-600 max-w-2xl">{profile?.bio || "This user prefers to keep an air of mystery about them."}</p>
+              
+              <div className="flex-1 mt-2 md:mt-4">
+                 <h1 className="text-3xl font-extrabold text-slate-800">{user?.name}</h1>
+                 <p className="text-slate-500 font-medium text-sm mt-1">{profile?.department?.toUpperCase() || "DEPARTMENT NOT SET"} • {user?.roles?.join(', ').toUpperCase()}</p>
+                 <p className="mt-3 text-slate-600 max-w-2xl text-sm leading-relaxed">{profile?.bio || "This user prefers to keep an air of mystery about them."}</p>
                  
                  <div className="flex gap-2 mt-4 flex-wrap">
-                    {profile?.skills?.map(skill => (
-                       <span key={skill} className="px-3 py-1 bg-slate-100 text-slate-600 text-xs rounded-full font-medium">{skill}</span>
+                    {profile?.skills?.map((skill, i) => (
+                       <span key={i} className="px-3 py-1 bg-slate-100 text-slate-600 text-xs rounded-full font-medium border border-slate-200">{skill}</span>
                     ))}
                  </div>
               </div>
-              <div className="shrink-0 flex gap-2">
+              <div className="shrink-0 flex gap-2 mt-4 md:mt-6">
                  {profile?.linkedin && (
-                    <a href={profile.linkedin} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
-                       <LinkIcon size={20} />
+                    <a href={profile.linkedin} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-slate-200 shadow-sm">
+                       <LinkIcon size={18} />
                     </a>
                  )}
               </div>
