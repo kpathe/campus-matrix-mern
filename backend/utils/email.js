@@ -1,3 +1,6 @@
+import { sendMail as sendGridMail } from "./sendgrid.js";
+import { sendMail as sendMailgun } from "./mailgun.js";
+import { sendMail as sendMailtrap } from "./mailtrap.js";
 const buildHtml = ({ heading, body, code }) => `
   <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1e293b;">
     <h2 style="color: #312e81;">${heading}</h2>
@@ -52,16 +55,22 @@ const sendWithBrevo = async ({ to, subject, html }) => {
   }
 };
 
-export const sendOtpEmail = async ({ to, subject, heading, body, code }) => {
   const html = buildHtml({ heading, body, code });
 
+  if (process.env.MAILTRAP_API_TOKEN) {
+    return sendMailtrap({ to, subject, html });
+  }
+  if (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN) {
+    return sendMailgun({ to, subject, html });
+  }
+  if (process.env.SENDGRID_API_KEY) {
+    return sendGridMail({ to, subject, html });
+  }
   if (process.env.RESEND_API_KEY) {
     return sendWithResend({ to, subject, html });
   }
-
   if (process.env.BREVO_API_KEY) {
     return sendWithBrevo({ to, subject, html });
   }
-
   console.log(`[EMAIL FALLBACK] ${subject} -> ${to} :: OTP ${code}`);
 };

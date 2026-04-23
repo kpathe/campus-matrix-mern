@@ -167,12 +167,12 @@ export default function Navbar({ user, setUser, theme, setTheme }) {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-4/5 max-w-sm bg-white shadow-2xl z-50 flex flex-col md:hidden"
+              className="fixed top-0 right-0 h-full w-4/5 max-w-sm bg-white dark:bg-slate-900 shadow-2xl z-50 flex flex-col md:hidden"
             >
               <div className="p-6 flex-1 overflow-y-auto">
                 <div className="flex justify-between items-center mb-8">
-                  <span className="text-xl font-bold text-slate-800">Menu</span>
-                  <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-400 hover:bg-slate-100 rounded-lg">
+                  <span className="text-xl font-bold text-slate-800 dark:text-slate-100">Menu</span>
+                  <button onClick={() => setIsMobileMenuOpen(false)} className="p-2 text-slate-400 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
                     <X size={20} />
                   </button>
                 </div>
@@ -184,23 +184,23 @@ export default function Navbar({ user, setUser, theme, setTheme }) {
                   {isLoggedIn && <NavLink to="/goals" className="text-lg">Tasks</NavLink>}
                   {isLoggedIn && <NavLink to="/messages" className="text-lg">Messages</NavLink>}
                   {isLoggedIn && <NavLink to="/notifications" className="text-lg">Notifications</NavLink>}
-                  <NavLink to="/leaderboard" className="text-lg">Leaderboard</NavLink>
-                  <NavLink to="/resources" className="text-lg">Resources</NavLink>
-                  <NavLink to="/events" className="text-lg">Events</NavLink>
-                  <NavLink to="/news" className="text-lg">News</NavLink>
+                  <NavLink to="/leaderboard" className="text-lg dark:text-slate-100">Leaderboard</NavLink>
+                  <NavLink to="/resources" className="text-lg dark:text-slate-100">Resources</NavLink>
+                  <NavLink to="/events" className="text-lg dark:text-slate-100">Events</NavLink>
+                  <NavLink to="/news" className="text-lg dark:text-slate-100">News</NavLink>
                   {isLoggedIn && user?.roles?.includes("admin") && (
                     <NavLink to="/admin" className="text-lg !text-red-600">
                       Admin Panel
                     </NavLink>
                   )}
                   <div className="pt-2">
-                    <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-300 mb-2">
                       Theme
                     </label>
                     <select
                       value={theme}
                       onChange={(e) => setTheme(e.target.value)}
-                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none focus:border-indigo-500"
+                      className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-3 py-2.5 text-slate-700 dark:text-slate-100 outline-none focus:border-indigo-500 dark:focus:border-indigo-400"
                     >
                       {themeOptions.map((option) => (
                         <option key={option.value} value={option.value}>
@@ -213,22 +213,22 @@ export default function Navbar({ user, setUser, theme, setTheme }) {
               </div>
 
               {isLoggedIn ? (
-                <div className="p-6 border-t border-slate-100 bg-slate-50">
+                <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800">
                   <div className="flex items-center gap-3 mb-6">
-                    <img src={user?.image || "/avatar.png"} alt="User" className="w-12 h-12 rounded-full border border-slate-200" />
+                    <img src={user?.image || "/avatar.png"} alt="User" className="w-12 h-12 rounded-full border border-slate-200 dark:border-slate-700" />
                     <div>
-                      <p className="font-semibold text-slate-800">{user.name}</p>
-                      <p className="text-xs text-slate-500">@{user.username || "user"}</p>
+                      <p className="font-semibold text-slate-800 dark:text-slate-100">{user.name}</p>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">@{user.username || "user"}</p>
                     </div>
                   </div>
-                  <button onClick={handleLogout} className="w-full bg-white border border-slate-200 text-red-600 font-medium py-3 rounded-xl flex justify-center items-center gap-2 hover:bg-red-50">
+                  <button onClick={handleLogout} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-red-600 font-medium py-3 rounded-xl flex justify-center items-center gap-2 hover:bg-red-50 dark:hover:bg-red-900">
                     <LogOut size={18} />
                     Logout
                   </button>
                 </div>
               ) : (
-                <div className="p-6 border-t border-slate-100 bg-slate-50 flex flex-col gap-3">
-                  <Link to="/auth/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-white border border-slate-200 text-slate-700 font-medium py-3 rounded-xl flex justify-center hover:bg-slate-50">
+                <div className="p-6 border-t border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-800 flex flex-col gap-3">
+                  <Link to="/auth/login" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-100 font-medium py-3 rounded-xl flex justify-center hover:bg-slate-50 dark:hover:bg-slate-800">
                     Log in
                   </Link>
                   <Link to="/auth/signup" onClick={() => setIsMobileMenuOpen(false)} className="w-full bg-indigo-600 text-white font-medium py-3 rounded-xl flex justify-center hover:bg-indigo-700">
