@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import axios from "axios";
 
@@ -8,15 +8,19 @@ const Signup = () => {
 
   const [formData, setFormData] = useState({
     name: "",
+    username: "",
     email: "",
     password: "",
     year: "",
     roles: [],
     adminSecret: "",
   });
-
+  const [verificationOtp, setVerificationOtp] = useState("");
+  const [pendingEmail, setPendingEmail] = useState("");
   const [showAdmin, setShowAdmin] = useState(false);
+  const [showVerification, setShowVerification] = useState(false);
   const [error, setError] = useState("");
+  const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -26,14 +30,18 @@ const Signup = () => {
         if (res.status === 200) {
           navigate("/dashboard");
         }
-      } catch {}
+      } catch {
+        return null;
+      }
     };
+
     checkAuth();
   }, [navigate]);
 
   const handleYearChange = (e) => {
     const value = e.target.value;
     setError("");
+    setMessage("");
 
     let updatedRoles = [...formData.roles];
     if (value === "1") {
@@ -53,13 +61,15 @@ const Signup = () => {
 
   const handleRoleToggle = (role) => {
     setError("");
+    setMessage("");
     const { year } = formData;
-    if (year === "1" || year === "4") return; // locked
+    if (year === "1" || year === "4") return;
 
     setFormData((prev) => {
       const newRoles = prev.roles.includes(role)
-        ? prev.roles.filter((r) => r !== role)
+        ? prev.roles.filter((item) => item !== role)
         : [...prev.roles, role];
+
       return { ...prev, roles: newRoles };
     });
   };
@@ -67,6 +77,7 @@ const Signup = () => {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setError("");
+    setMessage("");
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -75,6 +86,7 @@ const Signup = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (formData.roles.length === 0) {
       setError("Please select at least one role.");
       return;
@@ -82,172 +94,278 @@ const Signup = () => {
 
     setLoading(true);
     try {
-      await axios.post("/api/auth/signup", formData, {
+      const res = await axios.post("/api/auth/signup", formData, {
         withCredentials: true,
       });
+
+      setPendingEmail(res.data.email || formData.email);
+      setMessage(res.data.message || "Signup successful. Please verify your email.");
+      setShowVerification(true);
+    } catch (err) {
+      setError(err.response?.data?.message || "Signup failed");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyEmail = async (e) => {
+    e.preventDefault();
+    setError("");
+    setMessage("");
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        "/api/auth/verify-email",
+        { email: pendingEmail, otp: verificationOtp },
+        { withCredentials: true }
+      );
+
+      setMessage(res.data.message || "Email verified successfully. Please log in.");
       navigate("/auth/login");
     } catch (err) {
-      const message = err.response?.data?.message || "Signup failed";
-      setError(message);
+      setError(err.response?.data?.message || "Failed to verify email");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    setError("");
+    setMessage("");
+    setLoading(true);
+    try {
+      const res = await axios.post(
+        "/api/auth/resend-verification-otp",
+        { email: pendingEmail },
+        { withCredentials: true }
+      );
+      setMessage(res.data.message || "OTP resent successfully.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to resend OTP");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-indigo-100 via-white to-blue-50 py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
-      
-      {/* Decorative blobs */}
-      <div className="absolute top-0 left-0 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob"></div>
-      <div className="absolute top-0 right-0 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000"></div>
-      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-indigo-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000"></div>
+    <div className="min-h-screen flex items-center justify-center bg-[radial-gradient(circle_at_top,_#ede9fe,_#faf5ff_35%,_#f8fafc_70%)] py-12 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-72 h-72 bg-fuchsia-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob" />
+      <div className="absolute top-0 right-0 w-72 h-72 bg-rose-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-2000" />
+      <div className="absolute -bottom-8 left-20 w-72 h-72 bg-amber-300 rounded-full mix-blend-multiply filter blur-3xl opacity-30 animate-blob animation-delay-4000" />
 
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="max-w-md w-full bg-white/80 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-white z-10"
+        className="max-w-md w-full bg-white/85 backdrop-blur-xl p-8 rounded-2xl shadow-2xl border border-white z-10"
       >
         <div className="mb-8 text-center">
-          <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600">
-            Create Account
+          <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-600 to-rose-600">
+            {showVerification ? "Verify Your Email" : "Create Account"}
           </h2>
-          <p className="text-gray-500 mt-2 text-sm">Join the Campus Matrix network</p>
+          <p className="text-gray-500 mt-2 text-sm">
+            {showVerification
+              ? "Enter the OTP we sent to activate your account"
+              : "Join the Campus Matrix network"}
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="space-y-4">
-             <input
-               type="text"
-               name="name"
-               placeholder="Full Name"
-               required
-               value={formData.name}
-               onChange={handleChange}
-               className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-             />
-             <div className="relative">
-               <input
-                 type="email"
-                 name="email"
-                 placeholder="College Email (@satiengg.in)"
-                 required
-                 value={formData.email}
-                 onChange={handleChange}
-                 className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-               />
-               {formData.email && !formData.email.endsWith("@satiengg.in") && !formData.adminSecret && (
-                  <p className="text-xs text-red-500 mt-1 ml-1 absolute -bottom-5">Must use @satiengg.in domain</p>
-               )}
-             </div>
-             <input
-               type="password"
-               name="password"
-               placeholder="Password"
-               required
-               value={formData.password}
-               onChange={handleChange}
-               className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-             />
-             <select
-               name="year"
-               required
-               value={formData.year}
-               onChange={handleYearChange}
-               className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all text-gray-700"
-             >
-               <option value="">Select current year</option>
-               <option value="1">1st Year</option>
-               <option value="2">2nd Year</option>
-               <option value="3">3rd Year</option>
-               <option value="4">4th Year</option>
-             </select>
-          </div>
-
-          <div className="bg-gray-50/50 p-4 rounded-xl border border-gray-100">
-            <p className="text-sm font-semibold text-gray-700 mb-3">Assign Roles:</p>
-            <div className="flex gap-6">
-              <label className="flex items-center space-x-2 text-sm cursor-pointer group">
+        {!showVerification ? (
+          <form onSubmit={handleSubmit} className="space-y-5">
+            <div className="space-y-4">
+              <input
+                type="text"
+                name="name"
+                placeholder="Full name"
+                required
+                value={formData.name}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+              />
+              <input
+                type="text"
+                name="username"
+                placeholder="Username (lowercase letters, numbers, . or _)"
+                required
+                value={formData.username}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+              />
+              <div className="relative">
                 <input
-                  type="checkbox"
-                  checked={formData.roles.includes("mentee")}
-                  onChange={() => handleRoleToggle("mentee")}
-                  disabled={formData.year === "1" || formData.year === "4"}
-                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 disabled:opacity-40 transition-colors"
+                  type="email"
+                  name="email"
+                  placeholder="College email (@satiengg.in)"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
                 />
-                <span className={`font-medium ${formData.year === "4" ? "text-gray-400" : "text-gray-700 group-hover:text-indigo-600 transition-colors"}`}>Mentee</span>
-              </label>
-
-              <label className="flex items-center space-x-2 text-sm cursor-pointer group">
-                <input
-                  type="checkbox"
-                  checked={formData.roles.includes("mentor")}
-                  onChange={() => handleRoleToggle("mentor")}
-                  disabled={formData.year === "1" || formData.year === "4"}
-                  className="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 disabled:opacity-40 transition-colors"
-                />
-                <span className={`font-medium ${formData.year === "1" ? "text-gray-400" : "text-gray-700 group-hover:text-indigo-600 transition-colors"}`}>Mentor</span>
-              </label>
+                {formData.email &&
+                  !formData.email.endsWith("@satiengg.in") &&
+                  !formData.adminSecret && (
+                    <p className="text-xs text-red-500 mt-1 ml-1 absolute -bottom-5">
+                      Must use @satiengg.in domain
+                    </p>
+                  )}
+              </div>
+              <input
+                type="password"
+                name="password"
+                placeholder="Password (min 8 chars, letter + number)"
+                required
+                value={formData.password}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+              />
+              <select
+                name="year"
+                required
+                value={formData.year}
+                onChange={handleYearChange}
+                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500 text-gray-700"
+              >
+                <option value="">Select current year</option>
+                <option value="1">1st Year</option>
+                <option value="2">2nd Year</option>
+                <option value="3">3rd Year</option>
+                <option value="4">4th Year</option>
+              </select>
             </div>
-            
-            <AnimatePresence>
-               {(formData.year === "1" || formData.year === "4") && (
-                 <motion.p 
-                    initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                    className="text-xs text-indigo-500 mt-2 font-medium"
-                 >
-                   {formData.year === "1" ? "1st years are locked as Mentees." : "4th years are locked as Mentors."}
-                 </motion.p>
-               )}
-            </AnimatePresence>
-          </div>
 
-          <div className="py-2">
-             <button type="button" onClick={() => setShowAdmin(!showAdmin)} className="text-xs text-gray-500 hover:text-indigo-600 font-medium transition-colors">
-                Register as Faculty / Admin?
-             </button>
-             <AnimatePresence>
-                {showAdmin && (
-                   <motion.div
-                     initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: "auto" }} exit={{ opacity: 0, height: 0 }}
-                     className="mt-3"
-                   >
-                     <input
-                        type="password"
-                        name="adminSecret"
-                        placeholder="Admin Access Code"
-                        value={formData.adminSecret}
-                        onChange={handleChange}
-                        className="w-full px-4 py-2 bg-red-50/50 border border-red-200 text-red-900 placeholder-red-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
-                     />
-                   </motion.div>
+            <div className="bg-gray-50/60 p-4 rounded-xl border border-gray-100">
+              <p className="text-sm font-semibold text-gray-700 mb-3">Assign Roles</p>
+              <div className="flex gap-6">
+                <label className="flex items-center space-x-2 text-sm cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={formData.roles.includes("mentee")}
+                    onChange={() => handleRoleToggle("mentee")}
+                    disabled={formData.year === "1" || formData.year === "4"}
+                    className="w-4 h-4 rounded text-fuchsia-600 focus:ring-fuchsia-500 disabled:opacity-40"
+                  />
+                  <span className={formData.year === "4" ? "text-gray-400" : "text-gray-700"}>
+                    Mentee
+                  </span>
+                </label>
+
+                <label className="flex items-center space-x-2 text-sm cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={formData.roles.includes("mentor")}
+                    onChange={() => handleRoleToggle("mentor")}
+                    disabled={formData.year === "1" || formData.year === "4"}
+                    className="w-4 h-4 rounded text-fuchsia-600 focus:ring-fuchsia-500 disabled:opacity-40"
+                  />
+                  <span className={formData.year === "1" ? "text-gray-400" : "text-gray-700"}>
+                    Mentor
+                  </span>
+                </label>
+              </div>
+
+              <AnimatePresence>
+                {(formData.year === "1" || formData.year === "4") && (
+                  <motion.p
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="text-xs text-fuchsia-500 mt-2 font-medium"
+                  >
+                    {formData.year === "1"
+                      ? "1st years are locked as mentees."
+                      : "4th years are locked as mentors."}
+                  </motion.p>
                 )}
-             </AnimatePresence>
-          </div>
+              </AnimatePresence>
+            </div>
 
-          {error && (
-             <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-red-500 text-sm text-center font-medium bg-red-50 py-2 rounded-lg border border-red-100">
-                {error}
-             </motion.p>
-          )}
+            <div className="py-2">
+              <button
+                type="button"
+                onClick={() => setShowAdmin(!showAdmin)}
+                className="text-xs text-gray-500 hover:text-fuchsia-600 font-medium transition-colors"
+              >
+                Register as Faculty / Admin?
+              </button>
+              <AnimatePresence>
+                {showAdmin && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: "auto" }}
+                    exit={{ opacity: 0, height: 0 }}
+                    className="mt-3"
+                  >
+                    <input
+                      type="password"
+                      name="adminSecret"
+                      placeholder="Admin Access Code"
+                      value={formData.adminSecret}
+                      onChange={handleChange}
+                      className="w-full px-4 py-2 bg-red-50/50 border border-red-200 text-red-900 placeholder-red-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
+                    />
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full relative flex justify-center py-3 px-4 border border-transparent text-sm font-semibold rounded-xl text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all shadow-lg shadow-indigo-200 disabled:opacity-70"
-          >
-            {loading ? (
-               <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-               </svg>
-            ) : "Create Account"}
-          </button>
-        </form>
-        
+            {message && <p className="text-emerald-600 text-sm text-center">{message}</p>}
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 px-4 text-sm font-semibold rounded-xl text-white bg-fuchsia-600 hover:bg-fuchsia-700 transition-all shadow-lg shadow-fuchsia-200 disabled:opacity-70"
+            >
+              {loading ? "Creating Account..." : "Create Account"}
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handleVerifyEmail} className="space-y-5">
+            <input
+              type="email"
+              value={pendingEmail}
+              readOnly
+              className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-600"
+            />
+            <input
+              type="text"
+              value={verificationOtp}
+              onChange={(e) => {
+                setVerificationOtp(e.target.value);
+                setError("");
+                setMessage("");
+              }}
+              placeholder="6-digit OTP"
+              maxLength={6}
+              className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500 tracking-[0.3em]"
+              required
+            />
+            {message && <p className="text-emerald-600 text-sm text-center">{message}</p>}
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 px-4 text-sm font-semibold rounded-xl text-white bg-fuchsia-600 hover:bg-fuchsia-700 transition-all disabled:opacity-70"
+            >
+              {loading ? "Verifying..." : "Verify Email"}
+            </button>
+            <button
+              type="button"
+              disabled={loading}
+              onClick={handleResendOtp}
+              className="w-full py-3 px-4 text-sm font-semibold rounded-xl text-fuchsia-700 bg-fuchsia-50 hover:bg-fuchsia-100 transition-all disabled:opacity-70"
+            >
+              Resend OTP
+            </button>
+          </form>
+        )}
+
         <p className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{" "}
-          <Link to="/auth/login" className="font-semibold text-indigo-600 hover:text-indigo-500 transition-colors">
+          <Link
+            to="/auth/login"
+            className="font-semibold text-fuchsia-600 hover:text-fuchsia-500 transition-colors"
+          >
             Log in instead
           </Link>
         </p>

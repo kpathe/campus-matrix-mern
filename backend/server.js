@@ -13,6 +13,7 @@ import messageRoutes from "./routes/messageRoutes.js";
 import matchRoutes from "./routes/matchRoutes.js";
 import leaderboardRoutes from "./routes/leaderboardRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -52,6 +53,7 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/matches", matchRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 app.use("/api/upload", uploadRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Catch-all route for SPA
 app.get(/^\/(?!api).*/, (req, res) => {

@@ -7,10 +7,23 @@ export const sendMessage = async (req, res) => {
   if (!chatId || !content) return res.status(400).json({ message: "Invalid message" });
 
   try {
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ message: "Chat not found." });
+    }
+
+    if (chat.status !== "accepted") {
+      return res.status(403).json({ message: "This chat request has not been accepted yet." });
+    }
+
+    if (!chat.users.some((userId) => userId.toString() === req.user.id)) {
+      return res.status(403).json({ message: "You are not part of this chat." });
+    }
+
     let message = await Message.create({
       chat: chatId,
       sender: req.user.id,
-      content,
+      content: String(content).trim(),
     });
 
     message = await message.populate("sender", "name email");
@@ -30,6 +43,15 @@ export const getMessagesByChatId = async (req, res) => {
   const { chatId } = req.params;
 
   try {
+    const chat = await Chat.findById(chatId);
+    if (!chat) {
+      return res.status(404).json({ message: "Chat not found." });
+    }
+
+    if (chat.status !== "accepted") {
+      return res.status(403).json({ message: "This chat request has not been accepted yet." });
+    }
+
     const messages = await Message.find({ chat: chatId })
       .populate("sender", "name email")
       .populate("chat");

@@ -13,6 +13,16 @@ const goalSchema = new mongoose.Schema(
       required: true,
     },
     description: String,
+    category: {
+      type: String,
+      enum: ["goal", "task"],
+      default: "goal",
+    },
+    priority: {
+      type: String,
+      enum: ["low", "medium", "high"],
+      default: "medium",
+    },
     completed: {
       type: Boolean,
       default: false,
@@ -28,7 +38,7 @@ const goalSchema = new mongoose.Schema(
     pointsAwarded: {
       type: Boolean,
       default: false,
-    }
+    },
   },
   { timestamps: true }
 );

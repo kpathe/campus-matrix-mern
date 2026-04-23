@@ -1,24 +1,57 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
 import { UploadCloud } from "lucide-react";
+import { toast } from "react-toastify";
+
+const defaultFormData = {
+  department: "",
+  bio: "",
+  skills: "",
+  interests: "",
+  languages: "",
+  gender: "",
+  linkedin: "",
+  username: "",
+};
 
 const CreateProfile = () => {
   const navigate = useNavigate();
-  const [formData, setFormData] = useState({
-    department: "",
-    bio: "",
-    skills: "",
-    interests: "",
-    languages: "",
-    gender: "",
-    linkedin: "",
-  });
-
+  const [searchParams] = useSearchParams();
+  const isEditMode = searchParams.get("mode") === "edit";
+  const [formData, setFormData] = useState(defaultFormData);
   const [profileImageFile, setProfileImageFile] = useState(null);
   const [coverImageFile, setCoverImageFile] = useState(null);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    const loadExistingProfile = async () => {
+      if (!isEditMode) return;
+
+      try {
+        const [profileRes, userRes] = await Promise.all([
+          axios.get("/api/profile/me", { withCredentials: true }),
+          axios.get("/api/auth/me", { withCredentials: true }),
+        ]);
+
+        setFormData({
+          department: profileRes.data.department || "",
+          bio: profileRes.data.bio || "",
+          skills: (profileRes.data.skills || []).join(", "),
+          interests: (profileRes.data.interests || []).join(", "),
+          languages: (profileRes.data.languages || []).join(", "),
+          gender: profileRes.data.gender || "",
+          linkedin: profileRes.data.linkedin || "",
+          username: userRes.data.username || "",
+        });
+      } catch (err) {
+        toast.error("Failed to load existing profile.");
+      }
+    };
+
+    loadExistingProfile();
+  }, [isEditMode]);
 
   const handleChange = (e) => {
     setFormData((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -29,7 +62,7 @@ const CreateProfile = () => {
     data.append("image", file);
     const res = await axios.post("/api/upload", data, {
       withCredentials: true,
-      headers: { "Content-Type": "multipart/form-data" }
+      headers: { "Content-Type": "multipart/form-data" },
     });
     return res.data.imageUrl;
   };
@@ -43,31 +76,30 @@ const CreateProfile = () => {
       let coverImageUrl = "";
 
       if (profileImageFile) {
-         profileImageUrl = await handleFileUpload(profileImageFile);
+        profileImageUrl = await handleFileUpload(profileImageFile);
       }
       if (coverImageFile) {
-         coverImageUrl = await handleFileUpload(coverImageFile);
+        coverImageUrl = await handleFileUpload(coverImageFile);
       }
 
-      const res = await axios.post(
-        "/api/profile/create-profile",
+      const endpoint = isEditMode ? "/api/profile/edit-profile" : "/api/profile/create-profile";
+      await axios[isEditMode ? "put" : "post"](
+        endpoint,
         {
           ...formData,
-          profileImage: profileImageUrl,
-          coverImage: coverImageUrl,
-          skills: formData.skills.split(",").map((s) => s.trim()),
-          interests: formData.interests.split(",").map((i) => i.trim()),
-          languages: formData.languages.split(",").map((l) => l.trim()),
+          profileImage: profileImageUrl || undefined,
+          coverImage: coverImageUrl || undefined,
+          skills: formData.skills.split(",").map((item) => item.trim()).filter(Boolean),
+          interests: formData.interests.split(",").map((item) => item.trim()).filter(Boolean),
+          languages: formData.languages.split(",").map((item) => item.trim()).filter(Boolean),
         },
         { withCredentials: true }
       );
 
-      if (res.status === 200 || res.status === 201) {
-        navigate("/dashboard");
-      }
+      toast.success(isEditMode ? "Profile updated successfully." : "Profile created successfully.");
+      navigate("/profile");
     } catch (err) {
-      console.error("Profile creation failed:", err);
-      alert("Failed to create profile. Please try again.");
+      toast.error(err.response?.data?.message || "Failed to save profile.");
     } finally {
       setUploading(false);
     }
@@ -82,104 +114,145 @@ const CreateProfile = () => {
         className="w-full max-w-3xl bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-slate-200"
       >
         <div className="mb-8 border-b border-slate-100 pb-6">
-           <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">Profile Setup</h2>
-           <p className="text-slate-500 mt-2 text-sm">Tell us about yourself to tailor your matchmaking experience.</p>
+          <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">
+            {isEditMode ? "Edit Profile" : "Profile Setup"}
+          </h2>
+          <p className="text-slate-500 mt-2 text-sm">
+            {isEditMode
+              ? "Update your profile details so matching, messaging, and tasks stay relevant."
+              : "Tell us about yourself to tailor your matchmaking experience."}
+          </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Username *</label>
+            <input
+              type="text"
+              name="username"
+              value={formData.username}
+              onChange={handleChange}
+              required
+              className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+              placeholder="jane.doe"
+            />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Department *</label>
+            <input
+              type="text"
+              name="department"
+              value={formData.department}
+              onChange={handleChange}
+              required
+              className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+              placeholder="Computer Science"
+            />
+          </div>
+
           <div className="col-span-1 md:col-span-2">
             <label className="block text-sm font-semibold text-slate-700 mb-2">Cover Image</label>
             <div className="border border-dashed border-slate-300 rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors">
-               <UploadCloud className="text-slate-400 mb-2" size={24} />
-               <input
-                 type="file"
-                 accept="image/*"
-                 onChange={(e) => setCoverImageFile(e.target.files[0])}
-                 className="text-sm text-slate-600 w-full ml-12"
-               />
-               {coverImageFile && <p className="text-xs text-indigo-600 mt-2 font-medium">Selected: {coverImageFile.name}</p>}
+              <UploadCloud className="text-slate-400 mb-2" size={24} />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setCoverImageFile(e.target.files[0])}
+                className="text-sm text-slate-600 w-full ml-12"
+              />
+              {coverImageFile && <p className="text-xs text-indigo-600 mt-2 font-medium">Selected: {coverImageFile.name}</p>}
             </div>
           </div>
 
           <div className="col-span-1 md:col-span-2">
             <label className="block text-sm font-semibold text-slate-700 mb-2">Profile Avatar</label>
             <div className="border border-dashed border-slate-300 rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors">
-               <UploadCloud className="text-slate-400 mb-2" size={24} />
-               <input
-                 type="file"
-                 accept="image/*"
-                 onChange={(e) => setProfileImageFile(e.target.files[0])}
-                 className="text-sm text-slate-600 w-full ml-12"
-               />
-               {profileImageFile && <p className="text-xs text-indigo-600 mt-2 font-medium">Selected: {profileImageFile.name}</p>}
+              <UploadCloud className="text-slate-400 mb-2" size={24} />
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => setProfileImageFile(e.target.files[0])}
+                className="text-sm text-slate-600 w-full ml-12"
+              />
+              {profileImageFile && <p className="text-xs text-indigo-600 mt-2 font-medium">Selected: {profileImageFile.name}</p>}
             </div>
           </div>
 
           <div className="flex flex-col">
-             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Department *</label>
-             <input
-               type="text" name="department" value={formData.department} onChange={handleChange} required
-               className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
-               placeholder="Computer Science"
-             />
-          </div>
-
-          <div className="flex flex-col">
-             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Gender *</label>
-             <select
-               name="gender" value={formData.gender} onChange={handleChange} required
-               className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
-             >
-               <option value="">Select Gender</option>
-               <option value="Male">Male</option>
-               <option value="Female">Female</option>
-               <option value="Other">Other</option>
-             </select>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Gender *</label>
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              required
+              className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+            >
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
 
           <div className="col-span-1 md:col-span-2 flex flex-col">
-             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Bio</label>
-             <textarea
-               name="bio" value={formData.bio} onChange={handleChange} rows="3"
-               className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm resize-none"
-               placeholder="A brief description of yourself."
-             />
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Bio</label>
+            <textarea
+              name="bio"
+              value={formData.bio}
+              onChange={handleChange}
+              rows="3"
+              className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm resize-none"
+              placeholder="A brief description of yourself."
+            />
           </div>
 
           <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
-             <div className="flex flex-col">
-               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Skills</label>
-               <input
-                 type="text" name="skills" value={formData.skills} onChange={handleChange}
-                 className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
-                 placeholder="React, Node, Python"
-               />
-             </div>
-             <div className="flex flex-col">
-               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Interests</label>
-               <input
-                 type="text" name="interests" value={formData.interests} onChange={handleChange}
-                 className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
-                 placeholder="AI, Web3, Reading"
-               />
-             </div>
-             <div className="flex flex-col">
-               <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Languages</label>
-               <input
-                 type="text" name="languages" value={formData.languages} onChange={handleChange}
-                 className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
-                 placeholder="English, Spanish"
-               />
-             </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Skills</label>
+              <input
+                type="text"
+                name="skills"
+                value={formData.skills}
+                onChange={handleChange}
+                className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+                placeholder="React, Node, Python"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Interests</label>
+              <input
+                type="text"
+                name="interests"
+                value={formData.interests}
+                onChange={handleChange}
+                className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+                placeholder="AI, Web3, Reading"
+              />
+            </div>
+            <div className="flex flex-col">
+              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Languages</label>
+              <input
+                type="text"
+                name="languages"
+                value={formData.languages}
+                onChange={handleChange}
+                className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+                placeholder="English, Hindi"
+              />
+            </div>
           </div>
 
           <div className="col-span-1 md:col-span-2 flex flex-col">
-             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">LinkedIn URL</label>
-             <input
-               type="url" name="linkedin" value={formData.linkedin} onChange={handleChange}
-               className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
-               placeholder="https://linkedin.com/in/username"
-             />
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">LinkedIn URL</label>
+            <input
+              type="url"
+              name="linkedin"
+              value={formData.linkedin}
+              onChange={handleChange}
+              className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+              placeholder="https://linkedin.com/in/username"
+            />
           </div>
         </div>
 
@@ -188,7 +261,7 @@ const CreateProfile = () => {
           disabled={uploading}
           className="mt-8 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
         >
-          {uploading ? "Uploading Images & Saving..." : "Save Profile"}
+          {uploading ? "Uploading Images & Saving..." : isEditMode ? "Update Profile" : "Save Profile"}
         </button>
       </motion.form>
     </div>

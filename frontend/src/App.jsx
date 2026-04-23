@@ -1,22 +1,13 @@
-import {
-  BrowserRouter as Router,
-  Routes,
-  Route,
-  Navigate,
-} from "react-router-dom";
+import { BrowserRouter as Router, Navigate, Route, Routes } from "react-router-dom";
 import { useEffect, useState } from "react";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-// Static UI components
 import Navbar from "./components/Navbar";
 import Landing from "./components/Landing";
 import Features from "./components/Features";
 import Testimonials from "./components/Testimonials";
 import Footer from "./components/Footer";
 import ProtectedRoute from "./components/ProtectedRoute";
-
-// Pages
 import Login from "./pages/Login";
 import Signup from "./pages/Signup";
 import Dashboard from "./pages/Dashboard";
@@ -26,11 +17,12 @@ import Profile from "./pages/Profile";
 import Matching from "./pages/Matching";
 import Goals from "./pages/Goals";
 import Messages from "./pages/Messages";
-import Resources from "./pages/Resources"
-import Events from "./pages/Events"
-import Leaderboard from "./pages/Leaderboard"
-import AdminDashboard from "./pages/AdminDashboard"
-import News from "./pages/News"
+import Resources from "./pages/Resources";
+import Events from "./pages/Events";
+import Leaderboard from "./pages/Leaderboard";
+import AdminDashboard from "./pages/AdminDashboard";
+import News from "./pages/News";
+import Notifications from "./pages/Notifications";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -54,10 +46,11 @@ function App() {
         setCheckedAuth(true);
       }
     };
+
     fetchUser();
   }, []);
 
-  if (!checkedAuth) return null; // Avoid flicker while checking auth
+  if (!checkedAuth) return null;
 
   return (
     <>
@@ -81,27 +74,17 @@ function App() {
           />
 
           <Route path="/auth/login" element={<Login setUser={setUser} />} />
-          <Route path="/auth/signup" element={<Signup setUser={setUser} />} />
+          <Route path="/auth/signup" element={<Signup />} />
           <Route path="/me" element={<Home />} />
 
-          <Route path="/resources" element={<ProtectedRoute user={user}>
-                <Resources />
-              </ProtectedRoute>}/>
-          <Route path="/events" element={<ProtectedRoute user={user}>
-                <Events />
-              </ProtectedRoute>}/>
-          <Route path="/leaderboard" element={<ProtectedRoute user={user}>
-                <Leaderboard />
-              </ProtectedRoute>}/>
-          <Route path="/news" element={<ProtectedRoute user={user}>
-                <News />
-              </ProtectedRoute>}/>
-          <Route path="/admin" element={
+          <Route
+            path="/dashboard"
+            element={
               <ProtectedRoute user={user}>
-                 <AdminDashboard />
+                <Dashboard />
               </ProtectedRoute>
-          }/>
-
+            }
+          />
           <Route
             path="/create-profile"
             element={
@@ -114,7 +97,7 @@ function App() {
             path="/profile"
             element={
               <ProtectedRoute user={user}>
-                <Profile />
+                <Profile setUser={setUser} />
               </ProtectedRoute>
             }
           />
@@ -126,15 +109,6 @@ function App() {
               </ProtectedRoute>
             }
           />
-
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute user={user}>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
           <Route
             path="/goals"
             element={
@@ -143,12 +117,59 @@ function App() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/messages"
             element={
               <ProtectedRoute user={user}>
                 <Messages />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute user={user}>
+                <Notifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/resources"
+            element={
+              <ProtectedRoute user={user}>
+                <Resources />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/events"
+            element={
+              <ProtectedRoute user={user}>
+                <Events />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/leaderboard"
+            element={
+              <ProtectedRoute user={user}>
+                <Leaderboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/news"
+            element={
+              <ProtectedRoute user={user}>
+                <News />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute user={user}>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />
