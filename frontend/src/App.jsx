@@ -14,9 +14,11 @@ import Dashboard from "./pages/Dashboard";
 import CreateProfile from "./pages/CreateProfile";
 import Home from "./pages/Home";
 import Profile from "./pages/Profile";
+import PublicProfile from "./pages/PublicProfile";
 import Matching from "./pages/Matching";
 import Goals from "./pages/Goals";
 import Messages from "./pages/Messages";
+import Connect from "./pages/Connect";
 import Resources from "./pages/Resources";
 import Events from "./pages/Events";
 import Leaderboard from "./pages/Leaderboard";
@@ -24,9 +26,14 @@ import AdminDashboard from "./pages/AdminDashboard";
 import News from "./pages/News";
 import Notifications from "./pages/Notifications";
 
+const THEME_STORAGE_KEY = "campus-matrix-theme";
+
 function App() {
   const [user, setUser] = useState(null);
   const [checkedAuth, setCheckedAuth] = useState(false);
+  const [theme, setTheme] = useState(
+    () => window.localStorage.getItem(THEME_STORAGE_KEY) || "system"
+  );
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -50,12 +57,35 @@ function App() {
     fetchUser();
   }, []);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+
+    const applyTheme = () => {
+      const resolvedTheme =
+        theme === "system" ? (mediaQuery.matches ? "dark" : "light") : theme;
+
+      root.classList.toggle("dark", resolvedTheme === "dark");
+      root.dataset.theme = resolvedTheme;
+      root.style.colorScheme = resolvedTheme;
+    };
+
+    applyTheme();
+
+    const handleThemeChange = () => applyTheme();
+    mediaQuery.addEventListener("change", handleThemeChange);
+
+    window.localStorage.setItem(THEME_STORAGE_KEY, theme);
+
+    return () => mediaQuery.removeEventListener("change", handleThemeChange);
+  }, [theme]);
+
   if (!checkedAuth) return null;
 
   return (
     <>
       <Router>
-        <Navbar user={user} setUser={setUser} />
+        <Navbar user={user} setUser={setUser} theme={theme} setTheme={setTheme} />
         <Routes>
           <Route
             path="/"
@@ -98,6 +128,14 @@ function App() {
             element={
               <ProtectedRoute user={user}>
                 <Profile setUser={setUser} />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/connect"
+            element={
+              <ProtectedRoute user={user}>
+                <Connect />
               </ProtectedRoute>
             }
           />
@@ -173,6 +211,14 @@ function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/:username"
+            element={
+              <ProtectedRoute user={user}>
+                <PublicProfile />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </Router>
       <ToastContainer
@@ -184,7 +230,7 @@ function App() {
         pauseOnFocusLoss
         draggable
         pauseOnHover
-        theme="light"
+        theme={document.documentElement.classList.contains("dark") ? "dark" : "light"}
       />
     </>
   );

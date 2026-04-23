@@ -1,9 +1,15 @@
 import React, { useEffect, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Bell, LogOut, Menu, MessageSquare, X } from "lucide-react";
+import { Bell, LogOut, Menu, MessageSquare, Moon, Sun, Monitor, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function Navbar({ user, setUser }) {
+const themeOptions = [
+  { value: "system", label: "System", icon: Monitor },
+  { value: "light", label: "Light", icon: Sun },
+  { value: "dark", label: "Dark", icon: Moon },
+];
+
+export default function Navbar({ user, setUser, theme, setTheme }) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
@@ -29,6 +35,8 @@ export default function Navbar({ user, setUser }) {
   };
 
   const isLoggedIn = !!user;
+  const activeTheme = themeOptions.find((option) => option.value === theme) || themeOptions[0];
+  const ActiveThemeIcon = activeTheme.icon;
 
   const NavLink = ({ to, children, className = "" }) => {
     const isActive = location.pathname.startsWith(to);
@@ -62,7 +70,7 @@ export default function Navbar({ user, setUser }) {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16 items-center">
           <Link to="/" className="flex items-center gap-2 group">
-            <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:bg-indigo-700 transition-colors shadow-sm">
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white font-bold text-xl transition-colors shadow-sm">
               <img src="favicon.png" alt="logo" />
             </div>
             <span className="text-xl font-bold text-slate-800 tracking-tight">Campus Matrix</span>
@@ -70,6 +78,7 @@ export default function Navbar({ user, setUser }) {
 
           <div className="hidden md:flex items-center space-x-6">
             {isLoggedIn && <NavLink to="/dashboard">Dashboard</NavLink>}
+            {isLoggedIn && <NavLink to="/connect">Connect</NavLink>}
             {isLoggedIn && <NavLink to="/matching">Matching</NavLink>}
             {isLoggedIn && <NavLink to="/goals">Tasks</NavLink>}
             <NavLink to="/leaderboard">Leaderboard</NavLink>
@@ -81,6 +90,22 @@ export default function Navbar({ user, setUser }) {
                 Admin
               </NavLink>
             )}
+
+            <div className="flex items-center gap-2">
+              <ActiveThemeIcon size={16} className="text-slate-400" />
+              <select
+                value={theme}
+                onChange={(e) => setTheme(e.target.value)}
+                className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-sm text-slate-600 outline-none transition-colors hover:border-indigo-300 focus:border-indigo-500"
+                aria-label="Theme"
+              >
+                {themeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
 
             {isLoggedIn ? (
               <div className="flex items-center gap-4 pl-4 border-l border-slate-200">
@@ -154,6 +179,7 @@ export default function Navbar({ user, setUser }) {
 
                 <div className="flex flex-col gap-4">
                   {isLoggedIn && <NavLink to="/dashboard" className="text-lg">Dashboard</NavLink>}
+                  {isLoggedIn && <NavLink to="/connect" className="text-lg">Connect</NavLink>}
                   {isLoggedIn && <NavLink to="/matching" className="text-lg">Matching</NavLink>}
                   {isLoggedIn && <NavLink to="/goals" className="text-lg">Tasks</NavLink>}
                   {isLoggedIn && <NavLink to="/messages" className="text-lg">Messages</NavLink>}
@@ -167,6 +193,22 @@ export default function Navbar({ user, setUser }) {
                       Admin Panel
                     </NavLink>
                   )}
+                  <div className="pt-2">
+                    <label className="block text-xs font-semibold uppercase tracking-wide text-slate-400 mb-2">
+                      Theme
+                    </label>
+                    <select
+                      value={theme}
+                      onChange={(e) => setTheme(e.target.value)}
+                      className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-slate-700 outline-none focus:border-indigo-500"
+                    >
+                      {themeOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
                 </div>
               </div>
 

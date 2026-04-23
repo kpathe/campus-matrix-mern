@@ -13,6 +13,8 @@ const Messages = () => {
   const [user, setUser] = useState(null);
   const [query, setQuery] = useState("");
   const [suggestions, setSuggestions] = useState([]);
+  const [searching, setSearching] = useState(false);
+  const [searchTouched, setSearchTouched] = useState(false);
   const [chats, setChats] = useState([]);
   const [incomingRequests, setIncomingRequests] = useState([]);
   const [outgoingRequests, setOutgoingRequests] = useState([]);
@@ -115,21 +117,31 @@ const Messages = () => {
     const timeout = setTimeout(async () => {
       if (!query.trim()) {
         setSuggestions([]);
+        setSearching(false);
         return;
       }
 
       try {
+        setSearching(true);
         const res = await axios.get(`/api/chat/search?q=${encodeURIComponent(query)}`, {
           withCredentials: true,
         });
         setSuggestions(res.data);
       } catch {
         setSuggestions([]);
+      } finally {
+        setSearching(false);
       }
     }, 250);
 
     return () => clearTimeout(timeout);
   }, [query]);
+
+  const handleSearchSubmit = async (e) => {
+    e?.preventDefault();
+    if (!query.trim()) return;
+    await startNewChat(query.trim());
+  };
 
   const handleTyping = (e) => {
     setMessage(e.target.value);
@@ -228,17 +240,29 @@ const Messages = () => {
         <AnimatePresence>
           {isNewChatOpen && (
             <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="bg-slate-50 border-b border-slate-200 px-4 py-3 overflow-hidden space-y-3">
-              <div className="relative">
+              <form onSubmit={handleSearchSubmit} className="relative">
                 <input
                   type="text"
                   value={query}
-                  onChange={(e) => setQuery(e.target.value)}
+                  onChange={(e) => {
+                    setQuery(e.target.value);
+                    setSearchTouched(true);
+                  }}
                   placeholder="Search by username or email..."
                   className="w-full text-sm px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   autoFocus
                 />
-                <Search size={16} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400" />
-              </div>
+                <button
+                  type="submit"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-md text-slate-400 hover:text-indigo-600 hover:bg-slate-100 transition-colors"
+                  title="Search and send request"
+                >
+                  <Search size={16} />
+                </button>
+              </form>
+              {searching && (
+                <p className="text-xs text-slate-500">Searching users...</p>
+              )}
               {suggestions.length > 0 && (
                 <div className="bg-white rounded-xl border border-slate-200 overflow-hidden">
                   {suggestions.map((suggestion) => (
@@ -252,6 +276,11 @@ const Messages = () => {
                     </button>
                   ))}
                 </div>
+              )}
+              {searchTouched && query.trim() && !searching && suggestions.length === 0 && (
+                <p className="text-xs text-slate-500">
+                  No suggestions found. Press Enter or click the search icon to try the exact username/email.
+                </p>
               )}
             </motion.div>
           )}

@@ -13,7 +13,6 @@ const defaultFormData = {
   languages: "",
   gender: "",
   linkedin: "",
-  username: "",
 };
 
 const CreateProfile = () => {
@@ -30,10 +29,7 @@ const CreateProfile = () => {
       if (!isEditMode) return;
 
       try {
-        const [profileRes, userRes] = await Promise.all([
-          axios.get("/api/profile/me", { withCredentials: true }),
-          axios.get("/api/auth/me", { withCredentials: true }),
-        ]);
+        const profileRes = await axios.get("/api/profile/me", { withCredentials: true });
 
         setFormData({
           department: profileRes.data.department || "",
@@ -43,7 +39,6 @@ const CreateProfile = () => {
           languages: (profileRes.data.languages || []).join(", "),
           gender: profileRes.data.gender || "",
           linkedin: profileRes.data.linkedin || "",
-          username: userRes.data.username || "",
         });
       } catch (err) {
         toast.error("Failed to load existing profile.");
@@ -89,6 +84,7 @@ const CreateProfile = () => {
           ...formData,
           profileImage: profileImageUrl || undefined,
           coverImage: coverImageUrl || undefined,
+          linkedin: formData.linkedin.trim(),
           skills: formData.skills.split(",").map((item) => item.trim()).filter(Boolean),
           interests: formData.interests.split(",").map((item) => item.trim()).filter(Boolean),
           languages: formData.languages.split(",").map((item) => item.trim()).filter(Boolean),
@@ -126,19 +122,6 @@ const CreateProfile = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Username *</label>
-            <input
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              required
-              className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
-              placeholder="jane.doe"
-            />
-          </div>
-
-          <div className="flex flex-col">
             <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Department *</label>
             <input
               type="text"
@@ -149,6 +132,22 @@ const CreateProfile = () => {
               className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
               placeholder="Computer Science"
             />
+          </div>
+
+          <div className="flex flex-col">
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Gender *</label>
+            <select
+              name="gender"
+              value={formData.gender}
+              onChange={handleChange}
+              required
+              className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+            >
+              <option value="">Select Gender</option>
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Other">Other</option>
+            </select>
           </div>
 
           <div className="col-span-1 md:col-span-2">
@@ -177,22 +176,6 @@ const CreateProfile = () => {
               />
               {profileImageFile && <p className="text-xs text-indigo-600 mt-2 font-medium">Selected: {profileImageFile.name}</p>}
             </div>
-          </div>
-
-          <div className="flex flex-col">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Gender *</label>
-            <select
-              name="gender"
-              value={formData.gender}
-              onChange={handleChange}
-              required
-              className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
-            >
-              <option value="">Select Gender</option>
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Other">Other</option>
-            </select>
           </div>
 
           <div className="col-span-1 md:col-span-2 flex flex-col">
@@ -244,14 +227,14 @@ const CreateProfile = () => {
           </div>
 
           <div className="col-span-1 md:col-span-2 flex flex-col">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">LinkedIn URL</label>
+            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">LinkedIn Username</label>
             <input
-              type="url"
+              type="text"
               name="linkedin"
               value={formData.linkedin}
               onChange={handleChange}
               className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
-              placeholder="https://linkedin.com/in/username"
+              placeholder="your-linkedin-handle"
             />
           </div>
         </div>

@@ -1,11 +1,9 @@
 import Profile from "../models/Profile.js";
 import User from "../models/User.js";
+import Follow from "../models/Follow.js";
 import { aggregateStats } from "../utils/statAggregator.js";
-import { ensureUniqueUsername } from "../utils/username.js";
 import {
-  normalizeUsername,
   sanitizeArrayInput,
-  validateUsername,
 } from "../utils/validation.js";
 
 export const createProfile = async (req, res) => {
@@ -20,20 +18,10 @@ export const createProfile = async (req, res) => {
       linkedin,
       profileImage,
       coverImage,
-      username,
     } = req.body;
 
     if (!department?.trim()) {
       return res.status(400).json({ success: false, message: "Department is required." });
-    }
-
-    const normalizedUsername = normalizeUsername(username || "");
-    if (normalizedUsername && !validateUsername(normalizedUsername)) {
-      return res.status(400).json({
-        success: false,
-        message:
-          "Username must be 3-20 characters and can only use lowercase letters, numbers, dots, and underscores.",
-      });
     }
 
     const profileData = {
@@ -54,17 +42,7 @@ export const createProfile = async (req, res) => {
       { new: true, upsert: true }
     );
 
-    const userUpdates = { hasProfile: true };
-    if (normalizedUsername) {
-      userUpdates.username = await ensureUniqueUsername({
-        username: normalizedUsername,
-        email: req.user.email,
-        name: req.user.name,
-        excludeUserId: req.user.id,
-      });
-    }
-
-    const user = await User.findByIdAndUpdate(req.user.id, userUpdates, { new: true }).select(
+    const user = await User.findByIdAndUpdate(req.user.id, { hasProfile: true }, { new: true }).select(
       "-password"
     );
 
@@ -112,15 +90,56 @@ export const refreshStats = async (req, res) => {
 export const updateExternalHandles = async (req, res) => {
    try {
       const { githubUsername, leetcodeUsername, gfgUsername } = req.body;
-      const profile = await Profile.findOneAndUpdate(
+      let profile = await Profile.findOneAndUpdate(
          { user: req.user.id },
          { githubUsername, leetcodeUsername, gfgUsername },
          { new: true }
       );
+      if (!profile) {
+        return res.status(404).json({ message: "Profile not found." });
+      }
+
+      const stats = await aggregateStats(profile);
+      profile.totalDynamicScore = stats.totalScore;
+      profile.combinedStreak = stats.combinedStreak;
+      profile.contributionGraph = stats.contributionGraph;
+      await profile.save();
       res.json(profile);
    } catch(err) {
       res.status(500).json({ message: "Failed to update handles" });
    }
+};
+
+export const getPublicProfile = async (req, res) => {
+  try {
+    const user = await User.findOne({ username: req.params.username })
+      .select("name username email year roles hasProfile createdAt");
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    const [profile, followersCount, followingCount, followState] = await Promise.all([
+      Profile.findOne({ user: user._id }),
+      Follow.countDocuments({ following: user._id }),
+      Follow.countDocuments({ follower: user._id }),
+      req.user
+        ? Follow.findOne({ follower: req.user.id, following: user._id }).select("_id")
+        : null,
+    ]);
+
+    res.status(200).json({
+      user,
+      profile,
+      followersCount,
+      followingCount,
+      isFollowing: Boolean(followState),
+      isOwnProfile: req.user ? req.user.id === user._id.toString() : false,
+    });
+  } catch (err) {
+    console.error("Get Public Profile Error:", err);
+    res.status(500).json({ message: "Failed to fetch public profile." });
+  }
 };
 
 export const searchUsers = async (req, res) => {

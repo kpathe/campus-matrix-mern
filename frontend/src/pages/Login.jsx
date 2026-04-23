@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import axios from "axios";
 
@@ -19,13 +19,19 @@ const cardClassName =
 
 const Login = ({ setUser }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const [mode, setMode] = useState("login");
   const [form, setForm] = useState(initialLoginState);
-  const [verifyForm, setVerifyForm] = useState({ email: "", otp: "" });
   const [resetForm, setResetForm] = useState(initialResetState);
-  const [message, setMessage] = useState("");
+  const [message, setMessage] = useState(location.state?.message || "");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (location.state?.email) {
+      setForm((prev) => ({ ...prev, email: location.state.email }));
+    }
+  }, [location.state]);
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -61,48 +67,7 @@ const Login = ({ setUser }) => {
         navigate("/dashboard");
       }
     } catch (err) {
-      if (err.response?.data?.requiresVerification) {
-        setVerifyForm((prev) => ({ ...prev, email: err.response.data.email || form.email }));
-        setMode("verify");
-        setMessage("Your email is not verified yet. Enter the OTP to continue.");
-      } else {
-        setError(err.response?.data?.message || "Login failed");
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyEmail = async (e) => {
-    e.preventDefault();
-    resetStatus();
-    setLoading(true);
-    try {
-      const res = await axios.post("/api/auth/verify-email", verifyForm, {
-        withCredentials: true,
-      });
-      setMessage(res.data.message || "Email verified successfully. You can now log in.");
-      setMode("login");
-      setForm((prev) => ({ ...prev, email: verifyForm.email }));
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to verify email.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResendVerification = async () => {
-    resetStatus();
-    setLoading(true);
-    try {
-      const res = await axios.post(
-        "/api/auth/resend-verification-otp",
-        { email: verifyForm.email },
-        { withCredentials: true }
-      );
-      setMessage(res.data.message || "A new OTP has been sent.");
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to resend OTP.");
+      setError(err.response?.data?.message || "Login failed");
     } finally {
       setLoading(false);
     }
@@ -137,11 +102,9 @@ const Login = ({ setUser }) => {
         otp: resetForm.otp,
       });
 
-      const res = await axios.post(
-        "/api/auth/reset-password",
-        resetForm,
-        { withCredentials: true }
-      );
+      const res = await axios.post("/api/auth/reset-password", resetForm, {
+        withCredentials: true,
+      });
 
       setMessage(res.data.message || "Password reset successful. Please log in.");
       setMode("login");
@@ -169,13 +132,11 @@ const Login = ({ setUser }) => {
         <div className="mb-8 text-center">
           <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-cyan-600">
             {mode === "login" && "Welcome Back"}
-            {mode === "verify" && "Verify Email"}
             {mode === "forgot" && "Forgot Password"}
             {mode === "reset" && "Reset Password"}
           </h2>
           <p className="text-gray-500 mt-2 text-sm">
             {mode === "login" && "Sign in to Campus Matrix"}
-            {mode === "verify" && "Enter the OTP sent to your email"}
             {mode === "forgot" && "We will send a reset OTP to your email"}
             {mode === "reset" && "Use the OTP to choose a new password"}
           </p>
@@ -219,51 +180,6 @@ const Login = ({ setUser }) => {
               className="w-full py-3 px-4 text-sm font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-70"
             >
               {loading ? "Signing In..." : "Sign In"}
-            </button>
-          </form>
-        )}
-
-        {mode === "verify" && (
-          <form onSubmit={handleVerifyEmail} className="space-y-5">
-            <input
-              type="email"
-              value={verifyForm.email}
-              onChange={(e) => {
-                setVerifyForm({ ...verifyForm, email: e.target.value });
-                resetStatus();
-              }}
-              placeholder="Email address"
-              className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
-              required
-            />
-            <input
-              type="text"
-              value={verifyForm.otp}
-              onChange={(e) => {
-                setVerifyForm({ ...verifyForm, otp: e.target.value });
-                resetStatus();
-              }}
-              placeholder="6-digit OTP"
-              className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 tracking-[0.3em]"
-              maxLength={6}
-              required
-            />
-            {message && <p className="text-emerald-600 text-sm text-center">{message}</p>}
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 text-sm font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-all disabled:opacity-70"
-            >
-              {loading ? "Verifying..." : "Verify Email"}
-            </button>
-            <button
-              type="button"
-              disabled={loading}
-              onClick={handleResendVerification}
-              className="w-full py-3 px-4 text-sm font-semibold rounded-xl text-blue-700 bg-blue-50 hover:bg-blue-100 transition-all disabled:opacity-70"
-            >
-              Resend OTP
             </button>
           </form>
         )}

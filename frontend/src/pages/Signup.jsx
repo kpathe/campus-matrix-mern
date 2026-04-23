@@ -15,10 +15,7 @@ const Signup = () => {
     roles: [],
     adminSecret: "",
   });
-  const [verificationOtp, setVerificationOtp] = useState("");
-  const [pendingEmail, setPendingEmail] = useState("");
   const [showAdmin, setShowAdmin] = useState(false);
-  const [showVerification, setShowVerification] = useState(false);
   const [error, setError] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
@@ -98,50 +95,22 @@ const Signup = () => {
         withCredentials: true,
       });
 
-      setPendingEmail(res.data.email || formData.email);
-      setMessage(res.data.message || "Signup successful. Please verify your email.");
-      setShowVerification(true);
+      setMessage(
+        res.data.message ||
+          "Signup successful. You can verify your email later from the profile page."
+      );
+
+      setTimeout(() => {
+        navigate("/auth/login", {
+          state: {
+            email: formData.email,
+            message:
+              "Account created. Log in and verify your email later from the profile page.",
+          },
+        });
+      }, 900);
     } catch (err) {
       setError(err.response?.data?.message || "Signup failed");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleVerifyEmail = async (e) => {
-    e.preventDefault();
-    setError("");
-    setMessage("");
-    setLoading(true);
-    try {
-      const res = await axios.post(
-        "/api/auth/verify-email",
-        { email: pendingEmail, otp: verificationOtp },
-        { withCredentials: true }
-      );
-
-      setMessage(res.data.message || "Email verified successfully. Please log in.");
-      navigate("/auth/login");
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to verify email");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResendOtp = async () => {
-    setError("");
-    setMessage("");
-    setLoading(true);
-    try {
-      const res = await axios.post(
-        "/api/auth/resend-verification-otp",
-        { email: pendingEmail },
-        { withCredentials: true }
-      );
-      setMessage(res.data.message || "OTP resent successfully.");
-    } catch (err) {
-      setError(err.response?.data?.message || "Failed to resend OTP");
     } finally {
       setLoading(false);
     }
@@ -161,204 +130,159 @@ const Signup = () => {
       >
         <div className="mb-8 text-center">
           <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-fuchsia-600 to-rose-600">
-            {showVerification ? "Verify Your Email" : "Create Account"}
+            Create Account
           </h2>
-          <p className="text-gray-500 mt-2 text-sm">
-            {showVerification
-              ? "Enter the OTP we sent to activate your account"
-              : "Join the Campus Matrix network"}
-          </p>
+          <p className="text-gray-500 mt-2 text-sm">Join the Campus Matrix network</p>
         </div>
 
-        {!showVerification ? (
-          <form onSubmit={handleSubmit} className="space-y-5">
-            <div className="space-y-4">
-              <input
-                type="text"
-                name="name"
-                placeholder="Full name"
-                required
-                value={formData.name}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-              />
-              <input
-                type="text"
-                name="username"
-                placeholder="Username (lowercase letters, numbers, . or _)"
-                required
-                value={formData.username}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-              />
-              <div className="relative">
-                <input
-                  type="email"
-                  name="email"
-                  placeholder="College email (@satiengg.in)"
-                  required
-                  value={formData.email}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-                />
-                {formData.email &&
-                  !formData.email.endsWith("@satiengg.in") &&
-                  !formData.adminSecret && (
-                    <p className="text-xs text-red-500 mt-1 ml-1 absolute -bottom-5">
-                      Must use @satiengg.in domain
-                    </p>
-                  )}
-              </div>
-              <input
-                type="password"
-                name="password"
-                placeholder="Password (min 8 chars, letter + number)"
-                required
-                value={formData.password}
-                onChange={handleChange}
-                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-              />
-              <select
-                name="year"
-                required
-                value={formData.year}
-                onChange={handleYearChange}
-                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500 text-gray-700"
-              >
-                <option value="">Select current year</option>
-                <option value="1">1st Year</option>
-                <option value="2">2nd Year</option>
-                <option value="3">3rd Year</option>
-                <option value="4">4th Year</option>
-              </select>
-            </div>
-
-            <div className="bg-gray-50/60 p-4 rounded-xl border border-gray-100">
-              <p className="text-sm font-semibold text-gray-700 mb-3">Assign Roles</p>
-              <div className="flex gap-6">
-                <label className="flex items-center space-x-2 text-sm cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={formData.roles.includes("mentee")}
-                    onChange={() => handleRoleToggle("mentee")}
-                    disabled={formData.year === "1" || formData.year === "4"}
-                    className="w-4 h-4 rounded text-fuchsia-600 focus:ring-fuchsia-500 disabled:opacity-40"
-                  />
-                  <span className={formData.year === "4" ? "text-gray-400" : "text-gray-700"}>
-                    Mentee
-                  </span>
-                </label>
-
-                <label className="flex items-center space-x-2 text-sm cursor-pointer group">
-                  <input
-                    type="checkbox"
-                    checked={formData.roles.includes("mentor")}
-                    onChange={() => handleRoleToggle("mentor")}
-                    disabled={formData.year === "1" || formData.year === "4"}
-                    className="w-4 h-4 rounded text-fuchsia-600 focus:ring-fuchsia-500 disabled:opacity-40"
-                  />
-                  <span className={formData.year === "1" ? "text-gray-400" : "text-gray-700"}>
-                    Mentor
-                  </span>
-                </label>
-              </div>
-
-              <AnimatePresence>
-                {(formData.year === "1" || formData.year === "4") && (
-                  <motion.p
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="text-xs text-fuchsia-500 mt-2 font-medium"
-                  >
-                    {formData.year === "1"
-                      ? "1st years are locked as mentees."
-                      : "4th years are locked as mentors."}
-                  </motion.p>
-                )}
-              </AnimatePresence>
-            </div>
-
-            <div className="py-2">
-              <button
-                type="button"
-                onClick={() => setShowAdmin(!showAdmin)}
-                className="text-xs text-gray-500 hover:text-fuchsia-600 font-medium transition-colors"
-              >
-                Register as Faculty / Admin?
-              </button>
-              <AnimatePresence>
-                {showAdmin && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: "auto" }}
-                    exit={{ opacity: 0, height: 0 }}
-                    className="mt-3"
-                  >
-                    <input
-                      type="password"
-                      name="adminSecret"
-                      placeholder="Admin Access Code"
-                      value={formData.adminSecret}
-                      onChange={handleChange}
-                      className="w-full px-4 py-2 bg-red-50/50 border border-red-200 text-red-900 placeholder-red-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
-                    />
-                  </motion.div>
-                )}
-              </AnimatePresence>
-            </div>
-
-            {message && <p className="text-emerald-600 text-sm text-center">{message}</p>}
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 text-sm font-semibold rounded-xl text-white bg-fuchsia-600 hover:bg-fuchsia-700 transition-all shadow-lg shadow-fuchsia-200 disabled:opacity-70"
-            >
-              {loading ? "Creating Account..." : "Create Account"}
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handleVerifyEmail} className="space-y-5">
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-4">
             <input
-              type="email"
-              value={pendingEmail}
-              readOnly
-              className="w-full px-4 py-3 bg-gray-100 border border-gray-200 rounded-xl text-gray-600"
+              type="text"
+              name="name"
+              placeholder="Full name"
+              required
+              value={formData.name}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
             />
             <input
               type="text"
-              value={verificationOtp}
-              onChange={(e) => {
-                setVerificationOtp(e.target.value);
-                setError("");
-                setMessage("");
-              }}
-              placeholder="6-digit OTP"
-              maxLength={6}
-              className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500 tracking-[0.3em]"
+              name="username"
+              placeholder="Username (lowercase letters, numbers, . or _)"
               required
+              value={formData.username}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
             />
-            {message && <p className="text-emerald-600 text-sm text-center">{message}</p>}
-            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full py-3 px-4 text-sm font-semibold rounded-xl text-white bg-fuchsia-600 hover:bg-fuchsia-700 transition-all disabled:opacity-70"
+            <div className="relative">
+              <input
+                type="email"
+                name="email"
+                placeholder="College email (@satiengg.in)"
+                required
+                value={formData.email}
+                onChange={handleChange}
+                className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+              />
+              {formData.email &&
+                !formData.email.endsWith("@satiengg.in") &&
+                !formData.adminSecret && (
+                  <p className="text-xs text-red-500 mt-1 ml-1 absolute -bottom-5">
+                    Must use @satiengg.in domain
+                  </p>
+                )}
+            </div>
+            <input
+              type="password"
+              name="password"
+              placeholder="Password (min 8 chars, letter + number)"
+              required
+              value={formData.password}
+              onChange={handleChange}
+              className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+            />
+            <select
+              name="year"
+              required
+              value={formData.year}
+              onChange={handleYearChange}
+              className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-fuchsia-500 text-gray-700"
             >
-              {loading ? "Verifying..." : "Verify Email"}
-            </button>
+              <option value="">Select current year</option>
+              <option value="1">1st Year</option>
+              <option value="2">2nd Year</option>
+              <option value="3">3rd Year</option>
+              <option value="4">4th Year</option>
+            </select>
+          </div>
+
+          <div className="bg-gray-50/60 p-4 rounded-xl border border-gray-100">
+            <p className="text-sm font-semibold text-gray-700 mb-3">Assign Roles</p>
+            <div className="flex gap-6">
+              <label className="flex items-center space-x-2 text-sm cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={formData.roles.includes("mentee")}
+                  onChange={() => handleRoleToggle("mentee")}
+                  disabled={formData.year === "1" || formData.year === "4"}
+                  className="w-4 h-4 rounded text-fuchsia-600 focus:ring-fuchsia-500 disabled:opacity-40"
+                />
+                <span className={formData.year === "4" ? "text-gray-400" : "text-gray-700"}>
+                  Mentee
+                </span>
+              </label>
+
+              <label className="flex items-center space-x-2 text-sm cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={formData.roles.includes("mentor")}
+                  onChange={() => handleRoleToggle("mentor")}
+                  disabled={formData.year === "1" || formData.year === "4"}
+                  className="w-4 h-4 rounded text-fuchsia-600 focus:ring-fuchsia-500 disabled:opacity-40"
+                />
+                <span className={formData.year === "1" ? "text-gray-400" : "text-gray-700"}>
+                  Mentor
+                </span>
+              </label>
+            </div>
+
+            <AnimatePresence>
+              {(formData.year === "1" || formData.year === "4") && (
+                <motion.p
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="text-xs text-fuchsia-500 mt-2 font-medium"
+                >
+                  {formData.year === "1"
+                    ? "1st years are locked as mentees."
+                    : "4th years are locked as mentors."}
+                </motion.p>
+              )}
+            </AnimatePresence>
+          </div>
+
+          <div className="py-2">
             <button
               type="button"
-              disabled={loading}
-              onClick={handleResendOtp}
-              className="w-full py-3 px-4 text-sm font-semibold rounded-xl text-fuchsia-700 bg-fuchsia-50 hover:bg-fuchsia-100 transition-all disabled:opacity-70"
+              onClick={() => setShowAdmin(!showAdmin)}
+              className="text-xs text-gray-500 hover:text-fuchsia-600 font-medium transition-colors"
             >
-              Resend OTP
+              Register as Faculty / Admin?
             </button>
-          </form>
-        )}
+            <AnimatePresence>
+              {showAdmin && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: "auto" }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="mt-3"
+                >
+                  <input
+                    type="password"
+                    name="adminSecret"
+                    placeholder="Admin Access Code"
+                    value={formData.adminSecret}
+                    onChange={handleChange}
+                    className="w-full px-4 py-2 bg-red-50/50 border border-red-200 text-red-900 placeholder-red-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-400 text-sm"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+
+          {message && <p className="text-emerald-600 text-sm text-center">{message}</p>}
+          {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3 px-4 text-sm font-semibold rounded-xl text-white bg-fuchsia-600 hover:bg-fuchsia-700 transition-all shadow-lg shadow-fuchsia-200 disabled:opacity-70"
+          >
+            {loading ? "Creating Account..." : "Create Account"}
+          </button>
+        </form>
 
         <p className="mt-6 text-center text-sm text-gray-600">
           Already have an account?{" "}

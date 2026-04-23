@@ -3,6 +3,7 @@ import crypto from "crypto";
 import jwt from "jsonwebtoken";
 import Chat from "../models/Chat.js";
 import Connection from "../models/Connection.js";
+import Follow from "../models/Follow.js";
 import Goal from "../models/Goal.js";
 import Message from "../models/Message.js";
 import Notification from "../models/Notification.js";
@@ -249,14 +250,6 @@ export const login = async (req, res) => {
       return res.status(400).json({ message: "Invalid credentials." });
     }
 
-    if (!user.isEmailVerified) {
-      return res.status(403).json({
-        message: "Please verify your email before logging in.",
-        requiresVerification: true,
-        email: user.email,
-      });
-    }
-
     const token = issueToken(user);
 
     res
@@ -400,6 +393,7 @@ export const deleteMyAccount = async (req, res) => {
       Profile.findOneAndDelete({ user: userId }),
       Goal.deleteMany({ $or: [{ user: userId }, { assigner: userId }] }),
       Connection.deleteMany({ $or: [{ mentor: userId }, { mentee: userId }] }),
+      Follow.deleteMany({ $or: [{ follower: userId }, { following: userId }] }),
       Notification.deleteMany({ user: userId }),
       Chat.deleteMany({ users: userId }),
       Message.deleteMany({

@@ -98,9 +98,42 @@ const Goals = () => {
     }
   };
 
+  const mentorAssignedTasks = goals.filter((goal) => goal.assigner);
+  const personalGoals = goals.filter((goal) => !goal.assigner);
   const completedGoals = goals.filter((goal) => goal.completed);
-  const pendingGoals = goals.filter((goal) => !goal.completed);
+  const pendingMentorTasks = mentorAssignedTasks.filter((goal) => !goal.completed);
+  const pendingPersonalGoals = personalGoals.filter((goal) => !goal.completed);
   const isMentor = user?.roles?.includes("mentor");
+
+  const renderTaskCard = (goal, dimmed = false) => (
+    <motion.div key={goal._id} layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} className={`bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex gap-4 group hover:border-indigo-300 ${dimmed ? "opacity-75" : ""}`}>
+      <button onClick={() => toggleComplete(goal._id, goal.completed)} className={`mt-0.5 transition-colors shrink-0 ${goal.completed ? "text-emerald-500 hover:text-slate-400" : "text-slate-300 hover:text-indigo-600"}`}>
+        {goal.completed ? <CheckCircle size={24} /> : <Circle size={24} />}
+      </button>
+      <div className="flex-1 min-w-0">
+        <h3 className={`font-medium ${goal.completed ? "text-slate-600 line-through decoration-slate-300" : "text-slate-800 truncate"}`}>
+          {goal.title}
+        </h3>
+        <p className={`text-sm mt-1 leading-relaxed ${goal.completed ? "text-slate-400 line-clamp-1" : "text-slate-500 line-clamp-2"}`}>{goal.description}</p>
+        <div className="flex items-center gap-4 mt-3 flex-wrap">
+          {goal.deadline && (
+            <span className={`text-xs font-medium flex items-center gap-1 ${new Date(goal.deadline) < new Date() && !goal.completed ? "text-red-500" : "text-slate-400"}`}>
+              <Calendar size={12} />
+              {new Date(goal.deadline).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
+            </span>
+          )}
+          {goal.assigner && (
+            <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
+              Mentor assigned
+            </span>
+          )}
+        </div>
+      </div>
+      <button onClick={() => handleDeleteGoal(goal._id)} className="text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-2 shrink-0 self-start">
+        <Trash2 size={18} />
+      </button>
+    </motion.div>
+  );
 
   return (
     <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6">
@@ -112,7 +145,7 @@ const Goals = () => {
               Goals & Tasks
             </h1>
             <p className="text-sm text-slate-500 mt-1">
-              Manage your own goals and mentor-assigned work from one place.
+              View mentor-assigned tasks separately from your personal goals.
             </p>
           </div>
         </div>
@@ -152,89 +185,74 @@ const Goals = () => {
           </div>
 
           <div className="space-y-8">
-            <section className="space-y-3">
-              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 pb-2">
-                In Progress ({pendingGoals.length})
-              </h3>
-              <AnimatePresence>
-                {pendingGoals.length === 0 && <div className="text-sm text-slate-500 italic py-4">No pending tasks.</div>}
-                {pendingGoals.map((goal) => (
-                  <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.95 }} key={goal._id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex gap-4 group hover:border-indigo-300">
-                    <button onClick={() => toggleComplete(goal._id, goal.completed)} className="mt-0.5 text-slate-300 hover:text-indigo-600 transition-colors shrink-0">
-                      <Circle size={24} />
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-slate-800 font-medium truncate">{goal.title}</h3>
-                      <p className="text-sm text-slate-500 mt-1 line-clamp-2 leading-relaxed">{goal.description}</p>
-                      <div className="flex items-center gap-4 mt-3 flex-wrap">
-                        {goal.deadline && (
-                          <span className={`text-xs font-medium flex items-center gap-1 ${new Date(goal.deadline) < new Date() ? "text-red-500" : "text-slate-400"}`}>
-                            <Calendar size={12} />
-                            {new Date(goal.deadline).toLocaleDateString([], { month: "short", day: "numeric", year: "numeric" })}
-                          </span>
-                        )}
-                        {goal.assigner && (
-                          <span className="text-xs font-medium text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-100">
-                            Mentor assigned
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <button onClick={() => handleDeleteGoal(goal._id)} className="text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-2 shrink-0 self-start" title="Delete Task">
-                      <Trash2 size={18} />
-                    </button>
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </section>
+            {loading ? (
+              <div className="flex justify-center py-10">
+                <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-600" />
+              </div>
+            ) : (
+              <>
+                <section className="space-y-3">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 pb-2">
+                    Mentor Assigned Tasks ({pendingMentorTasks.length})
+                  </h3>
+                  <AnimatePresence>
+                    {pendingMentorTasks.length === 0 ? (
+                      <div className="text-sm text-slate-500 italic py-4">No mentor-assigned tasks yet.</div>
+                    ) : (
+                      pendingMentorTasks.map((goal) => renderTaskCard(goal))
+                    )}
+                  </AnimatePresence>
+                </section>
 
-            {completedGoals.length > 0 && (
-              <section className="space-y-3">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 pb-2">
-                  Completed ({completedGoals.length})
-                </h3>
-                {completedGoals.map((goal) => (
-                  <div key={goal._id} className="bg-slate-50 p-4 rounded-xl border border-slate-200 flex gap-4 group opacity-75">
-                    <button onClick={() => toggleComplete(goal._id, goal.completed)} className="mt-0.5 text-emerald-500 hover:text-slate-400 transition-colors shrink-0">
-                      <CheckCircle size={24} />
-                    </button>
-                    <div className="flex-1 min-w-0">
-                      <h3 className="text-slate-600 font-medium line-through decoration-slate-300">{goal.title}</h3>
-                      <p className="text-sm text-slate-400 mt-1 line-clamp-1">{goal.description}</p>
-                    </div>
-                    <button onClick={() => handleDeleteGoal(goal._id)} className="text-slate-400 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100 p-2 shrink-0 self-start">
-                      <Trash2 size={18} />
-                    </button>
-                  </div>
-                ))}
-              </section>
-            )}
+                <section className="space-y-3">
+                  <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 pb-2">
+                    Personal Goals ({pendingPersonalGoals.length})
+                  </h3>
+                  <AnimatePresence>
+                    {pendingPersonalGoals.length === 0 ? (
+                      <div className="text-sm text-slate-500 italic py-4">No personal goals in progress.</div>
+                    ) : (
+                      pendingPersonalGoals.map((goal) => renderTaskCard(goal))
+                    )}
+                  </AnimatePresence>
+                </section>
 
-            {isMentor && (
-              <section className="space-y-3">
-                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 pb-2">
-                  Assigned By You ({assignedGoals.length})
-                </h3>
-                {assignedGoals.length === 0 ? (
-                  <div className="text-sm text-slate-500 italic py-4">No mentee tasks assigned yet.</div>
-                ) : (
-                  assignedGoals.map((goal) => (
-                    <div key={goal._id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
-                      <div className="flex items-center justify-between gap-3">
-                        <div>
-                          <h3 className="text-slate-800 font-medium">{goal.title}</h3>
-                          <p className="text-sm text-slate-500 mt-1">
-                            Assigned to @{goal.user?.username} • {goal.user?.name}
-                          </p>
-                        </div>
-                        <button onClick={() => handleDeleteGoal(goal._id)} className="text-slate-400 hover:text-red-500 transition-colors">
-                          <Trash2 size={18} />
-                        </button>
-                      </div>
-                    </div>
-                  ))
+                {completedGoals.length > 0 && (
+                  <section className="space-y-3">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 pb-2">
+                      Completed ({completedGoals.length})
+                    </h3>
+                    {completedGoals.map((goal) => renderTaskCard(goal, true))}
+                  </section>
                 )}
-              </section>
+
+                {isMentor && (
+                  <section className="space-y-3">
+                    <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider border-b border-slate-200 pb-2">
+                      Assigned By You ({assignedGoals.length})
+                    </h3>
+                    {assignedGoals.length === 0 ? (
+                      <div className="text-sm text-slate-500 italic py-4">No mentee tasks assigned yet.</div>
+                    ) : (
+                      assignedGoals.map((goal) => (
+                        <div key={goal._id} className="bg-white p-4 rounded-xl shadow-sm border border-slate-200">
+                          <div className="flex items-center justify-between gap-3">
+                            <div>
+                              <h3 className="text-slate-800 font-medium">{goal.title}</h3>
+                              <p className="text-sm text-slate-500 mt-1">
+                                Assigned to @{goal.user?.username} • {goal.user?.name}
+                              </p>
+                            </div>
+                            <button onClick={() => handleDeleteGoal(goal._id)} className="text-slate-400 hover:text-red-500 transition-colors">
+                              <Trash2 size={18} />
+                            </button>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </section>
+                )}
+              </>
             )}
           </div>
         </div>

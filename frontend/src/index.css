@@ -28,10 +28,31 @@
 }
 
 @layer base {
+  :root {
+    color-scheme: light;
+  }
+
   body {
     background-color: #f8fafc;
     color: #0f172a;
     font-family: 'Inter', system-ui, -apple-system, sans-serif;
     -webkit-font-smoothing: antialiased;
+    transition: background-color 180ms ease, color 180ms ease;
+  }
+
+  html.dark {
+    color-scheme: dark;
+  }
+
+  html.dark body {
+    background-color: #020617;
+    color: #e2e8f0;
+  }
+
+  html.dark .shadow-sm,
+  html.dark .shadow-md,
+  html.dark .shadow-lg,
+  html.dark .shadow-2xl {
+    box-shadow: 0 10px 30px rgba(2, 6, 23, 0.45) !important;
   }
 }

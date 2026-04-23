@@ -14,6 +14,7 @@ import matchRoutes from "./routes/matchRoutes.js";
 import leaderboardRoutes from "./routes/leaderboardRoutes.js";
 import uploadRoutes from "./routes/uploadRoutes.js";
 import notificationRoutes from "./routes/notificationRoutes.js";
+import connectRoutes from "./routes/connectRoutes.js";
 import path from "path";
 import { fileURLToPath } from "url";
 
@@ -54,6 +55,7 @@ app.use("/api/matches", matchRoutes);
 app.use("/api/leaderboard", leaderboardRoutes);
 app.use("/api/upload", uploadRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/connect", connectRoutes);
 
 // Catch-all route for SPA
 app.get(/^\/(?!api).*/, (req, res) => {

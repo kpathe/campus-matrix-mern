@@ -8,7 +8,7 @@ const buildChatSearchQuery = (identifier) => {
 
   const regex = new RegExp(trimmed.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
   return {
-    $or: [{ email: trimmed.toLowerCase() }, { username: trimmed.toLowerCase() }, { name: regex }],
+    $or: [{ email: regex }, { username: regex }, { name: regex }],
   };
 };
 
@@ -23,6 +23,7 @@ export const searchChatUsers = async (req, res) => {
       $or: [{ username: regex }, { name: regex }, { email: regex }],
     })
       .select("name username email roles")
+      .sort({ username: 1, name: 1 })
       .limit(8);
 
     res.status(200).json(users);
