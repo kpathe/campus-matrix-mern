@@ -62,7 +62,7 @@ export default function Navbar({ user, setUser, theme, setTheme }) {
   return (
     <>
       <nav
-        className={`sticky top-0 z-40 transition-all duration-300 ${
+        className={`sticky top-0 z-50 transition-all duration-300 ${
           scrolled
             ? "bg-white/80 dark:bg-slate-900/80 backdrop-blur-md shadow-sm border-b border-slate-200/50 dark:border-slate-800/50"
             : "bg-white dark:bg-slate-900 border-b border-transparent dark:border-transparent"
@@ -156,21 +156,24 @@ export default function Navbar({ user, setUser, theme, setTheme }) {
 
       <AnimatePresence>
         {isMobileMenuOpen && (
-          <>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setIsMobileMenuOpen(false)}
-              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-40 md:hidden"
-            />
-            <motion.div
-              initial={{ x: "100%" }}
-              animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="fixed top-0 right-0 h-full w-4/5 max-w-sm bg-white dark:bg-slate-900 shadow-2xl z-50 flex flex-col md:hidden"
-            >
+          <motion.div
+            key="mobile-backdrop"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[45] md:hidden"
+          />
+        )}
+        {isMobileMenuOpen && (
+          <motion.div
+            key="mobile-sidebar"
+            initial={{ x: "100%" }}
+            animate={{ x: 0 }}
+            exit={{ x: "100%" }}
+            transition={{ type: "spring", damping: 25, stiffness: 200 }}
+            className="fixed top-0 right-0 h-full w-4/5 max-w-sm bg-white dark:bg-slate-900 shadow-2xl z-[60] flex flex-col md:hidden"
+          >
               <div className="p-6 flex-1 overflow-y-auto">
                 <div className="flex justify-between items-center mb-8 mt-2">
                   <span className="text-xl font-bold text-slate-800 dark:text-slate-100">Menu</span>
@@ -239,7 +242,6 @@ export default function Navbar({ user, setUser, theme, setTheme }) {
                 </div>
               )}
             </motion.div>
-          </>
         )}
       </AnimatePresence>
     </>
