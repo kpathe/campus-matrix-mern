@@ -177,31 +177,31 @@ const Profile = ({ setUser }) => {
   if (!user) return null;
 
   return (
-    <div className="min-h-screen bg-slate-50 py-8 px-4 sm:px-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 py-8 px-4 sm:px-6 transition-colors">
       <div className="max-w-5xl mx-auto space-y-8">
-        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden">
+        <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="bg-white dark:bg-slate-800 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden transition-colors">
           <div
             className={`w-full h-32 ${!profile?.coverImage ? "bg-gradient-to-r from-indigo-500 via-sky-500 to-cyan-500" : ""}`}
             style={profile?.coverImage ? { backgroundImage: `url(${profile.coverImage})`, backgroundSize: "cover", backgroundPosition: "center" } : {}}
           />
 
           <div className="px-6 md:px-10 pb-8 relative z-10 flex flex-col md:flex-row gap-6 items-start">
-            <div className="w-32 h-32 bg-white rounded-2xl shadow-md flex-shrink-0 border-4 border-white overflow-hidden -mt-12 z-20 relative">
+            <div className="w-32 h-32 bg-white dark:bg-slate-800 rounded-2xl shadow-md flex-shrink-0 border-4 border-white dark:border-slate-800 overflow-hidden -mt-12 z-20 relative transition-colors">
               <img src={profile?.profileImage || "/avatar.png"} alt="User" className="w-full h-full object-cover" />
             </div>
 
             <div className="flex-1 mt-2 md:mt-4">
-              <h1 className="text-3xl font-extrabold text-slate-800">{user.name}</h1>
-              <p className="text-slate-500 font-medium text-sm mt-1">
+              <h1 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100">{user.name}</h1>
+              <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-1">
                 @{user.username || "user"} • {profile?.department?.toUpperCase() || "DEPARTMENT NOT SET"} • {user?.roles?.join(", ").toUpperCase()}
               </p>
-              <p className="mt-3 text-slate-600 max-w-2xl text-sm leading-relaxed">
+              <p className="mt-3 text-slate-600 dark:text-slate-300 max-w-2xl text-sm leading-relaxed">
                 {profile?.bio || "This user prefers to keep an air of mystery about them."}
               </p>
 
               <div className="flex gap-2 mt-4 flex-wrap">
                 {profile?.skills?.map((skill, index) => (
-                  <span key={index} className="px-3 py-1 bg-slate-100 text-slate-600 text-xs rounded-full font-medium border border-slate-200">
+                  <span key={index} className="px-3 py-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs rounded-full font-medium border border-slate-200 dark:border-slate-600">
                     {skill}
                   </span>
                 ))}
@@ -210,19 +210,19 @@ const Profile = ({ setUser }) => {
 
             <div className="shrink-0 flex gap-2 mt-4 md:mt-6">
               {profile?.linkedin && (
-                <a href={`https://linkedin.com/in/${profile.linkedin}`} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 text-slate-600 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors border border-slate-200 shadow-sm">
+                <a href={`https://linkedin.com/in/${profile.linkedin}`} target="_blank" rel="noreferrer" className="p-2 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-lg transition-colors border border-slate-200 dark:border-slate-600 shadow-sm">
                   <LinkIcon size={18} />
                 </a>
               )}
               <button
                 onClick={() => navigate("/create-profile?mode=edit")}
-                className="p-2 bg-slate-50 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors border border-slate-200 shadow-sm"
+                className="p-2 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-indigo-900/30 rounded-lg transition-colors border border-slate-200 dark:border-slate-600 shadow-sm"
               >
                 <UserPen size={18} />
               </button>
               <button
                 onClick={handleDeleteAccount}
-                className="p-2 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition-colors border border-red-100 shadow-sm"
+                className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors border border-red-100 dark:border-red-900/30 shadow-sm"
               >
                 <Trash2 size={18} />
               </button>
@@ -235,19 +235,19 @@ const Profile = ({ setUser }) => {
             <div
               className={`rounded-3xl p-6 shadow-sm border ${
                 user.isEmailVerified
-                  ? "bg-emerald-50 border-emerald-200"
-                  : "bg-amber-50 border-amber-200"
+                  ? "bg-emerald-50 dark:bg-emerald-900/10 border-emerald-200 dark:border-emerald-900/50"
+                  : "bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/50"
               }`}
             >
               <div className="flex items-start gap-3 mb-4">
                 {user.isEmailVerified ? (
-                  <BadgeCheck className="text-emerald-600 mt-0.5" size={22} />
+                  <BadgeCheck className="text-emerald-600 dark:text-emerald-500 mt-0.5" size={22} />
                 ) : (
-                  <MailWarning className="text-amber-600 mt-0.5" size={22} />
+                  <MailWarning className="text-amber-600 dark:text-amber-500 mt-0.5" size={22} />
                 )}
                 <div>
-                  <h2 className="text-lg font-bold text-slate-800">Email Verification</h2>
-                  <p className="text-sm text-slate-600 mt-1">
+                  <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Email Verification</h2>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                     {user.isEmailVerified
                       ? `Your email ${user.email} is verified.`
                       : `Your email ${user.email} is not verified yet. Enter the OTP sent to your inbox to verify it.`}
@@ -256,14 +256,14 @@ const Profile = ({ setUser }) => {
               </div>
 
               {!user.isEmailVerified && (
-                <form onSubmit={handleVerifyEmail} className="space-y-3">
+                 <form onSubmit={handleVerifyEmail} className="space-y-3">
                   <input
                     type="text"
                     value={otp}
                     onChange={(e) => setOtp(e.target.value)}
                     placeholder="Enter 6-digit OTP"
                     maxLength={6}
-                    className="w-full px-4 py-3 bg-white border border-amber-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 tracking-[0.3em]"
+                    className="w-full px-4 py-3 bg-white dark:bg-slate-800 border border-amber-200 dark:border-amber-700/50 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 text-slate-800 dark:text-slate-100 tracking-[0.3em]"
                     required
                   />
                   <div className="flex flex-col sm:flex-row gap-3">
@@ -279,7 +279,7 @@ const Profile = ({ setUser }) => {
                       type="button"
                       onClick={handleResendOtp}
                       disabled={resendingOtp}
-                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white text-amber-700 border border-amber-200 hover:bg-amber-100 transition-colors disabled:opacity-70"
+                      className="flex-1 inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-white dark:bg-slate-800 text-amber-700 dark:text-amber-500 border border-amber-200 dark:border-amber-700 hover:bg-amber-50 dark:hover:bg-amber-900/30 transition-colors disabled:opacity-70"
                     >
                       <Send size={16} />
                       {resendingOtp ? "Sending..." : "Resend OTP"}
@@ -289,32 +289,33 @@ const Profile = ({ setUser }) => {
               )}
             </div>
 
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-bold text-slate-800">Contribution Metrics</h2>
-                <span className="text-xs font-semibold uppercase tracking-wide text-slate-400">
-                  Saved from integrations
-                </span>
+                <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100">Contribution Metrics</h2>
               </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Points</p>
-                  <p className="text-2xl font-bold text-indigo-600">{profile?.totalDynamicScore || profile?.gamificationPoints || 0}</p>
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+                <div className="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-600">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider mb-1">Points</p>
+                  <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{profile?.totalDynamicScore || profile?.gamificationPoints || 0}</p>
                 </div>
-                <div className="bg-amber-50 p-4 rounded-xl border border-amber-100">
-                  <p className="text-xs text-amber-600/70 font-semibold uppercase tracking-wider mb-1">Cumulative Streak</p>
-                  <p className="text-2xl font-bold text-amber-600">{profile?.combinedStreak || 0}d</p>
+                <div className="bg-amber-50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-900/20">
+                  <p className="text-xs text-amber-600/70 dark:text-amber-500/70 font-semibold uppercase tracking-wider mb-1">Streak</p>
+                  <p className="text-2xl font-bold text-amber-600 dark:text-amber-500">{profile?.combinedStreak || 0}d</p>
                 </div>
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-100">
-                  <p className="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Branch</p>
-                  <p className="text-2xl font-bold text-slate-800">{profile?.department || "-"}</p>
-                </div>
+                <button onClick={() => navigate('/profile/followers')} className="text-left bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 transition-colors">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider mb-1">Followers</p>
+                  <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{profile?.followersCount || 0}</p>
+                </button>
+                <button onClick={() => navigate('/profile/following')} className="text-left bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-600 hover:border-indigo-300 dark:hover:border-indigo-500 transition-colors">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider mb-1">Following</p>
+                  <p className="text-2xl font-bold text-slate-800 dark:text-slate-100">{profile?.followingCount || 0}</p>
+                </button>
               </div>
 
               <div>
-                <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-3">Contribution Heatmap</h3>
-                <div className="p-4 bg-white border border-slate-100 rounded-xl max-w-full overflow-x-auto shadow-inner">
+                <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">Contribution Heatmap</h3>
+                <div className="p-4 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 rounded-xl max-w-full overflow-x-auto shadow-inner transition-colors">
                   {profile?.contributionGraph ? (
                     <div className="flex flex-wrap gap-1">
                       {Array.from({ length: 121 }).map((_, index) => {
@@ -322,15 +323,15 @@ const Profile = ({ setUser }) => {
                           .toISOString()
                           .split("T")[0];
                         const count = profile?.contributionGraph?.[date] || 0;
-                        let colorClass = "bg-slate-100";
-                        if (count > 0 && count < 3) colorClass = "bg-emerald-200";
-                        else if (count >= 3 && count < 6) colorClass = "bg-emerald-400";
-                        else if (count >= 6) colorClass = "bg-emerald-600";
+                        let colorClass = "bg-slate-100 dark:bg-slate-700";
+                        if (count > 0 && count < 3) colorClass = "bg-emerald-200 dark:bg-emerald-900";
+                        else if (count >= 3 && count < 6) colorClass = "bg-emerald-400 dark:bg-emerald-600";
+                        else if (count >= 6) colorClass = "bg-emerald-600 dark:bg-emerald-400";
                         return <div key={date} className={`h-3 w-3 rounded-sm ${colorClass}`} title={`${count} contributions on ${date}`} />;
                       })}
                     </div>
                   ) : (
-                    <p className="text-sm text-slate-400 italic">Add coding handles once to populate your heatmap.</p>
+                    <p className="text-sm text-slate-400 dark:text-slate-500 italic">Add coding handles once to populate your heatmap.</p>
                   )}
                 </div>
               </div>
@@ -338,36 +339,36 @@ const Profile = ({ setUser }) => {
           </motion.div>
 
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }} className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-200">
-              <h2 className="text-lg font-bold text-slate-800 flex items-center gap-2 mb-4">
-                <LinkIcon size={18} className="text-indigo-600" />
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+              <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-4">
+                <LinkIcon size={18} className="text-indigo-600 dark:text-indigo-400" />
                 Coding Integrations
               </h2>
 
               {integrationItems.length === 0 ? (
                 <form onSubmit={handleUpdateHandles} className="space-y-4">
                   <div>
-                    <label className="text-xs font-semibold text-slate-600 ml-1 flex items-center gap-1">
+                    <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 ml-1 flex items-center gap-1">
                       <Github size={12} />
                       GitHub Username
                     </label>
-                    <input value={handles.githubUsername} onChange={(e) => setHandles({ ...handles, githubUsername: e.target.value })} type="text" className="mt-1 w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g. torvalds" />
+                    <input value={handles.githubUsername} onChange={(e) => setHandles({ ...handles, githubUsername: e.target.value })} type="text" className="mt-1 w-full text-sm px-3 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 transition-colors" placeholder="e.g. torvalds" />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-slate-600 ml-1 flex items-center gap-1">
+                    <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 ml-1 flex items-center gap-1">
                       <Code2 size={12} />
                       LeetCode Username
                     </label>
-                    <input value={handles.leetcodeUsername} onChange={(e) => setHandles({ ...handles, leetcodeUsername: e.target.value })} type="text" className="mt-1 w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g. neetcode" />
+                    <input value={handles.leetcodeUsername} onChange={(e) => setHandles({ ...handles, leetcodeUsername: e.target.value })} type="text" className="mt-1 w-full text-sm px-3 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 transition-colors" placeholder="e.g. neetcode" />
                   </div>
                   <div>
-                    <label className="text-xs font-semibold text-slate-600 ml-1 flex items-center gap-1">
+                    <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 ml-1 flex items-center gap-1">
                       <Code2 size={12} />
                       GeeksForGeeks Handle
                     </label>
-                    <input value={handles.gfgUsername} onChange={(e) => setHandles({ ...handles, gfgUsername: e.target.value })} type="text" className="mt-1 w-full text-sm px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="e.g. sandeepjain" />
+                    <input value={handles.gfgUsername} onChange={(e) => setHandles({ ...handles, gfgUsername: e.target.value })} type="text" className="mt-1 w-full text-sm px-3 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 transition-colors" placeholder="e.g. sandeepjain" />
                   </div>
-                  <button type="submit" disabled={savingHandles} className="w-full bg-slate-900 hover:bg-slate-800 text-white font-medium py-2.5 rounded-xl transition-colors mt-2 shadow-sm text-sm disabled:opacity-70">
+                  <button type="submit" disabled={savingHandles} className="w-full bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl transition-colors mt-2 shadow-sm text-sm disabled:opacity-70">
                     {savingHandles ? "Saving..." : "Save Integrations"}
                   </button>
                 </form>
@@ -376,15 +377,15 @@ const Profile = ({ setUser }) => {
                   {integrationItems.map((item) => {
                     const Icon = item.icon;
                     return (
-                      <div key={item.key} className="flex items-center justify-between rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3">
+                      <div key={item.key} className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 px-4 py-3 transition-colors">
                         <div className="flex items-center gap-3">
-                          <Icon size={16} className="text-slate-500" />
+                          <Icon size={16} className="text-slate-500 dark:text-slate-400" />
                           <div>
-                            <p className="text-sm font-semibold text-slate-800">{item.label}</p>
-                            <p className="text-xs text-slate-500">{profile?.[item.key]}</p>
+                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{item.label}</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400">{profile?.[item.key]}</p>
                           </div>
                         </div>
-                        <button onClick={() => removeHandle(item.key)} className="rounded-lg p-2 text-slate-400 hover:bg-red-50 hover:text-red-600">
+                        <button onClick={() => removeHandle(item.key)} className="rounded-lg p-2 text-slate-400 dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors">
                           <X size={16} />
                         </button>
                       </div>

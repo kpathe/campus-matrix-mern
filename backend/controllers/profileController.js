@@ -61,7 +61,15 @@ export const getMyProfile = async (req, res) => {
     if (!profile) {
       return res.status(404).json({ message: "Profile not found" });
     }
-    res.status(200).json(profile);
+    
+    const followersCount = await Follow.countDocuments({ following: req.user.id });
+    const followingCount = await Follow.countDocuments({ follower: req.user.id });
+    
+    const profileObj = profile.toObject();
+    profileObj.followersCount = followersCount;
+    profileObj.followingCount = followingCount;
+    
+    res.status(200).json(profileObj);
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Server error" });

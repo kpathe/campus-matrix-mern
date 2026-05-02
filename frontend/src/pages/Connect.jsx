@@ -65,33 +65,33 @@ const Connect = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 px-4 py-8 sm:px-6">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 px-4 py-8 sm:px-6 transition-colors">
       <div className="mx-auto max-w-6xl space-y-8">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900">Connect</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100">Connect</h1>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Follow batchmates and seniors, explore their profiles, and send message requests.
             </p>
           </div>
           <div className="relative w-full sm:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500" size={16} />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search by name or username"
-              className="w-full rounded-xl border border-slate-200 bg-white py-3 pl-10 pr-4 text-sm outline-none focus:border-indigo-500"
+              className="w-full rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 py-3 pl-10 pr-4 text-sm text-slate-800 dark:text-slate-100 outline-none focus:border-indigo-500 dark:focus:border-indigo-400 transition-colors"
             />
           </div>
         </div>
 
         {loading ? (
           <div className="flex justify-center py-10">
-            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-600" />
+            <div className="h-8 w-8 animate-spin rounded-full border-b-2 border-indigo-600 dark:border-indigo-400" />
           </div>
         ) : students.length === 0 ? (
-          <div className="rounded-2xl border border-slate-200 bg-white p-10 text-center text-slate-500">
+          <div className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-10 text-center text-slate-500 dark:text-slate-400 transition-colors">
             No students found.
           </div>
         ) : (
@@ -99,52 +99,52 @@ const Connect = () => {
             {students.map((student) => (
               <div
                 key={student._id}
-                className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                className="flex flex-col rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md dark:hover:shadow-indigo-900/10"
               >
                 <button
                   onClick={() => navigate(`/${student.username}`)}
-                  className="w-full text-left"
+                  className="w-full text-left flex-1"
                 >
                   <div className="mb-4 flex items-center gap-3">
                     <img
                       src={student.profileImage || "/avatar.png"}
                       alt={student.name}
-                      className="h-14 w-14 rounded-2xl object-cover border border-slate-200"
+                      className="h-14 w-14 rounded-2xl object-cover border border-slate-200 dark:border-slate-700"
                     />
                     <div>
-                      <h2 className="font-semibold text-slate-800">{student.name}</h2>
-                      <p className="text-sm text-slate-500">@{student.username}</p>
+                      <h2 className="font-semibold text-slate-800 dark:text-slate-100 group-hover:text-indigo-600 transition-colors">{student.name}</h2>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">@{student.username}</p>
                     </div>
                   </div>
 
-                  <div className="space-y-2 text-sm text-slate-600">
-                    <p>Branch: <span className="font-medium text-slate-800">{student.department || "Not set"}</span></p>
-                    <p>Year: <span className="font-medium text-slate-800">{student.year}</span></p>
+                  <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
+                    <p>Branch: <span className="font-medium text-slate-800 dark:text-slate-200">{student.department || "Not set"}</span></p>
+                    <p>Year: <span className="font-medium text-slate-800 dark:text-slate-200">{student.year}</span></p>
                     <p>
                       Mentor:{" "}
-                      <span className="font-medium text-slate-800">
+                      <span className="font-medium text-slate-800 dark:text-slate-200">
                         {student.roles?.includes("mentor") ? "Yes" : "No"}
                       </span>
                     </p>
                   </div>
                 </button>
 
-                <div className="mt-5 flex gap-3">
+                <div className="mt-5 flex gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
                   <button
                     onClick={() => toggleFollow(student)}
                     className={`flex-1 rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
                       followingState[student._id]
-                        ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
-                        : "bg-indigo-600 text-white hover:bg-indigo-700"
+                        ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-900/40 border border-transparent dark:border-emerald-900/50"
+                        : "bg-indigo-600 dark:bg-indigo-600 text-white hover:bg-indigo-700 dark:hover:bg-indigo-500"
                     }`}
                   >
                     {followingState[student._id] ? (
-                      <span className="inline-flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center gap-2 w-full">
                         <UserRoundCheck size={16} />
                         Following
                       </span>
                     ) : (
-                      <span className="inline-flex items-center gap-2">
+                      <span className="inline-flex items-center justify-center gap-2 w-full">
                         <UserPlus size={16} />
                         Follow
                       </span>
@@ -152,11 +152,11 @@ const Connect = () => {
                   </button>
                   <button
                     onClick={() => startChat(student)}
-                    className="rounded-xl border border-slate-200 px-4 py-2.5 text-sm font-semibold text-slate-700 hover:border-indigo-300 hover:text-indigo-600"
+                    className="rounded-xl border border-slate-200 dark:border-slate-600 px-4 py-2.5 text-sm font-semibold text-slate-700 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-500 hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                    title="Message"
                   >
-                    <span className="inline-flex items-center gap-2">
+                    <span className="inline-flex items-center justify-center gap-2 w-full">
                       <MessageSquare size={16} />
-                      Chat
                     </span>
                   </button>
                 </div>

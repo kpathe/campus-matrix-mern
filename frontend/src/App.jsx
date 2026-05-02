@@ -25,6 +25,7 @@ import Leaderboard from "./pages/Leaderboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import News from "./pages/News";
 import Notifications from "./pages/Notifications";
+import FollowList from "./pages/FollowList";
 
 const THEME_STORAGE_KEY = "campus-matrix-theme";
 
@@ -132,6 +133,14 @@ function App() {
             }
           />
           <Route
+            path="/profile/:type"
+            element={
+              <ProtectedRoute user={user}>
+                <FollowList />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/connect"
             element={
               <ProtectedRoute user={user}>
@@ -216,6 +225,14 @@ function App() {
             element={
               <ProtectedRoute user={user}>
                 <PublicProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/:username/:type"
+            element={
+              <ProtectedRoute user={user}>
+                <FollowList />
               </ProtectedRoute>
             }
           />

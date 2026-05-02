@@ -101,3 +101,74 @@ export const unfollowUser = async (req, res) => {
     res.status(500).json({ message: "Failed to unfollow user." });
   }
 };
+
+export const getFollowers = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const targetUserId = userId === 'me' ? req.user.id : userId;
+
+    const follows = await Follow.find({ following: targetUserId }).select("follower");
+    const followerIds = follows.map((f) => f.follower);
+
+    const users = await User.find({ _id: { $in: followerIds } })
+      .select("name username email year roles hasProfile");
+
+    const profiles = await Profile.find({ user: { $in: followerIds } });
+    const profileMap = new Map(profiles.map((p) => [p.user.toString(), p]));
+
+    // Check if the current user is following any of these followers
+    let followingSet = new Set();
+    if (req.user) {
+      const myFollows = await Follow.find({ follower: req.user.id, following: { $in: followerIds } }).select("following");
+      followingSet = new Set(myFollows.map((f) => f.following.toString()));
+    }
+
+    const followers = users.map((u) =>
+      serializeDirectoryUser({
+        user: u,
+        profile: profileMap.get(u._id.toString()),
+        isFollowing: followingSet.has(u._id.toString()),
+      })
+    );
+
+    res.status(200).json(followers);
+  } catch (err) {
+    console.error("Get Followers Error:", err);
+    res.status(500).json({ message: "Failed to fetch followers." });
+  }
+};
+
+export const getFollowing = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const targetUserId = userId === 'me' ? req.user.id : userId;
+
+    const follows = await Follow.find({ follower: targetUserId }).select("following");
+    const followingIds = follows.map((f) => f.following);
+
+    const users = await User.find({ _id: { $in: followingIds } })
+      .select("name username email year roles hasProfile");
+
+    const profiles = await Profile.find({ user: { $in: followingIds } });
+    const profileMap = new Map(profiles.map((p) => [p.user.toString(), p]));
+
+    let followingSet = new Set();
+    if (req.user) {
+      const myFollows = await Follow.find({ follower: req.user.id, following: { $in: followingIds } }).select("following");
+      followingSet = new Set(myFollows.map((f) => f.following.toString()));
+    }
+
+    const following = users.map((u) =>
+      serializeDirectoryUser({
+        user: u,
+        profile: profileMap.get(u._id.toString()),
+        isFollowing: followingSet.has(u._id.toString()),
+      })
+    );
+
+    res.status(200).json(following);
+  } catch (err) {
+    console.error("Get Following Error:", err);
+    res.status(500).json({ message: "Failed to fetch following." });
+  }
+};
