@@ -95,7 +95,9 @@ const CreateProfile = () => {
       toast.success(isEditMode ? "Profile updated successfully." : "Profile created successfully.");
       navigate("/profile");
     } catch (err) {
-      toast.error(err.response?.data?.message || "Failed to save profile.");
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || "Failed to save profile.";
+      toast.error(errorMsg);
+      console.error("Save Profile Error:", err);
     } finally {
       setUploading(false);
     }

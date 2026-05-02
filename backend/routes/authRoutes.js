@@ -1,5 +1,6 @@
 import express from "express";
 import {
+  changePassword,
   deleteMyAccount,
   getMe,
   login,
@@ -25,6 +26,7 @@ router.post("/reset-password", resetPassword);
 router.get("/me", verifyToken, getMe);
 router.post("/logout", logoutUser);
 router.delete("/account", verifyToken, deleteMyAccount);
+router.put("/change-password", verifyToken, changePassword);
 
 router.get("/check-auth", verifyToken, (req, res) => {
   res.status(200).json({ authenticated: true, user: req.user });

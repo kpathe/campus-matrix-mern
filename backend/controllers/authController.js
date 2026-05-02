@@ -376,6 +376,31 @@ export const resetPassword = async (req, res) => {
   }
 };
 
+export const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+    const user = await User.findById(req.user.id);
+
+    const isMatch = await bcrypt.compare(currentPassword || "", user.password);
+    if (!isMatch) {
+      return res.status(400).json({ message: "Current password is incorrect." });
+    }
+
+    const passwordError = validatePassword(newPassword);
+    if (passwordError) {
+      return res.status(400).json({ message: passwordError });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 10);
+    await user.save();
+
+    res.status(200).json({ message: "Password changed successfully." });
+  } catch (err) {
+    console.error("Change Password Error:", err);
+    res.status(500).json({ message: "Server error." });
+  }
+};
+
 export const getMe = async (req, res) => {
   try {
     const user = await User.findById(req.user.id).select("-password");
@@ -392,7 +417,14 @@ export const logoutUser = (_req, res) => {
 
 export const deleteMyAccount = async (req, res) => {
   try {
-    const userId = req.user.id;
+    const { confirmUsername } = req.body;
+    const user = await User.findById(req.user.id);
+
+    if (!confirmUsername || confirmUsername !== user.username) {
+      return res.status(400).json({ message: "Username confirmation failed." });
+    }
+
+    const userId = user._id;
 
     const chats = await Chat.find({ users: userId }).select("_id");
     const chatIds = chats.map((chat) => chat._id);

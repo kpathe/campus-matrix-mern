@@ -7,6 +7,7 @@ import {
   Code2,
   Github,
   Link as LinkIcon,
+  KeyRound,
   MailWarning,
   Send,
   Trash2,
@@ -28,6 +29,14 @@ const Profile = ({ setUser }) => {
     leetcodeUsername: "",
     gfgUsername: "",
   });
+  
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "" });
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [deleteConfirmUsername, setDeleteConfirmUsername] = useState("");
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  
   const navigate = useNavigate();
 
   const integrationItems = useMemo(
@@ -150,25 +159,46 @@ const Profile = ({ setUser }) => {
     }
   };
 
-  const handleDeleteAccount = async () => {
-    const confirmed = window.confirm(
-      "Delete your account permanently? This will remove your profile, tasks, chats, and notifications."
-    );
-    if (!confirmed) return;
-
+  const handleChangePassword = async (e) => {
+    e.preventDefault();
+    setChangingPassword(true);
     try {
-      await axios.delete("/api/auth/account", { withCredentials: true });
+      await axios.put("/api/auth/change-password", passwordData, { withCredentials: true });
+      toast.success("Password changed successfully.");
+      setPasswordData({ currentPassword: "", newPassword: "" });
+      setIsChangingPassword(false);
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Failed to change password.");
+    } finally {
+      setChangingPassword(false);
+    }
+  };
+
+  const handleDeleteAccount = async (e) => {
+    e.preventDefault();
+    if (deleteConfirmUsername !== user.username) {
+      return toast.error("Username does not match.");
+    }
+
+    setDeletingAccount(true);
+    try {
+      await axios.delete("/api/auth/account", {
+        data: { confirmUsername: deleteConfirmUsername },
+        withCredentials: true,
+      });
       setUser?.(null);
-      toast.success("Account deleted.");
+      toast.success("Account deleted successfully.");
       navigate("/auth/signup");
     } catch (err) {
-      toast.error("Failed to delete account.");
+      toast.error(err.response?.data?.message || "Failed to delete account.");
+    } finally {
+      setDeletingAccount(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-slate-50">
+      <div className="flex h-screen items-center justify-center bg-slate-50 dark:bg-slate-900 transition-colors">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-indigo-600" />
       </div>
     );
@@ -221,7 +251,7 @@ const Profile = ({ setUser }) => {
                 <UserPen size={18} />
               </button>
               <button
-                onClick={handleDeleteAccount}
+                onClick={() => setShowDeleteConfirm(true)}
                 className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-900/40 rounded-lg transition-colors border border-red-100 dark:border-red-900/30 shadow-sm"
               >
                 <Trash2 size={18} />
@@ -295,11 +325,11 @@ const Profile = ({ setUser }) => {
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
-                <div className="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-600">
+                <div className="bg-slate-50 dark:bg-slate-700/50 p-4 rounded-xl border border-slate-100 dark:border-slate-600 transition-colors">
                   <p className="text-xs text-slate-500 dark:text-slate-400 font-semibold uppercase tracking-wider mb-1">Points</p>
                   <p className="text-2xl font-bold text-indigo-600 dark:text-indigo-400">{profile?.totalDynamicScore || profile?.gamificationPoints || 0}</p>
                 </div>
-                <div className="bg-amber-50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-900/20">
+                <div className="bg-amber-50 dark:bg-amber-900/10 p-4 rounded-xl border border-amber-100 dark:border-amber-900/20 transition-colors">
                   <p className="text-xs text-amber-600/70 dark:text-amber-500/70 font-semibold uppercase tracking-wider mb-1">Streak</p>
                   <p className="text-2xl font-bold text-amber-600 dark:text-amber-500">{profile?.combinedStreak || 0}d</p>
                 </div>
@@ -345,36 +375,9 @@ const Profile = ({ setUser }) => {
                 Coding Integrations
               </h2>
 
-              {integrationItems.length === 0 ? (
-                <form onSubmit={handleUpdateHandles} className="space-y-4">
-                  <div>
-                    <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 ml-1 flex items-center gap-1">
-                      <Github size={12} />
-                      GitHub Username
-                    </label>
-                    <input value={handles.githubUsername} onChange={(e) => setHandles({ ...handles, githubUsername: e.target.value })} type="text" className="mt-1 w-full text-sm px-3 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 transition-colors" placeholder="e.g. torvalds" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 ml-1 flex items-center gap-1">
-                      <Code2 size={12} />
-                      LeetCode Username
-                    </label>
-                    <input value={handles.leetcodeUsername} onChange={(e) => setHandles({ ...handles, leetcodeUsername: e.target.value })} type="text" className="mt-1 w-full text-sm px-3 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 transition-colors" placeholder="e.g. neetcode" />
-                  </div>
-                  <div>
-                    <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 ml-1 flex items-center gap-1">
-                      <Code2 size={12} />
-                      GeeksForGeeks Handle
-                    </label>
-                    <input value={handles.gfgUsername} onChange={(e) => setHandles({ ...handles, gfgUsername: e.target.value })} type="text" className="mt-1 w-full text-sm px-3 py-2 bg-slate-50 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 text-slate-800 dark:text-slate-100 transition-colors" placeholder="e.g. sandeepjain" />
-                  </div>
-                  <button type="submit" disabled={savingHandles} className="w-full bg-slate-900 dark:bg-indigo-600 hover:bg-slate-800 dark:hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl transition-colors mt-2 shadow-sm text-sm disabled:opacity-70">
-                    {savingHandles ? "Saving..." : "Save Integrations"}
-                  </button>
-                </form>
-              ) : (
-                <div className="space-y-3">
-                  {integrationItems.map((item) => {
+              <div className="space-y-3">
+                {integrationItems.length > 0 ? (
+                  integrationItems.map((item) => {
                     const Icon = item.icon;
                     return (
                       <div key={item.key} className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 px-4 py-3 transition-colors">
@@ -390,13 +393,121 @@ const Profile = ({ setUser }) => {
                         </button>
                       </div>
                     );
-                  })}
-                </div>
+                  })
+                ) : (
+                   <p className="text-sm text-slate-400 dark:text-slate-500 italic text-center py-4">No integrations added.</p>
+                )}
+                
+                <button 
+                  onClick={() => navigate("/create-profile?mode=edit")}
+                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl transition-colors shadow-sm text-sm"
+                >
+                  Edit Integrations
+                </button>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
+              <h2 className="text-lg font-bold text-slate-800 dark:text-slate-100 flex items-center gap-2 mb-4">
+                <KeyRound size={18} className="text-indigo-600 dark:text-indigo-400" />
+                Security Settings
+              </h2>
+              <button
+                onClick={() => setIsChangingPassword(!isChangingPassword)}
+                className="w-full flex items-center justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors group"
+              >
+                <span className="text-sm font-medium text-slate-700 dark:text-slate-200">Change Password</span>
+                <KeyRound size={16} className={`text-slate-400 group-hover:text-indigo-500 transition-transform duration-300 ${isChangingPassword ? "rotate-90" : ""}`} />
+              </button>
+
+              {isChangingPassword && (
+                <motion.form
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  onSubmit={handleChangePassword}
+                  className="mt-4 space-y-3 pt-3 border-t border-slate-100 dark:border-slate-700"
+                >
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Current Password</label>
+                    <input
+                      required
+                      type="password"
+                      value={passwordData.currentPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, currentPassword: e.target.value })}
+                      className="mt-1 w-full text-sm px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 dark:text-slate-100 transition-colors"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">New Password</label>
+                    <input
+                      required
+                      type="password"
+                      value={passwordData.newPassword}
+                      onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
+                      className="mt-1 w-full text-sm px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 dark:text-slate-100 transition-colors"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={changingPassword}
+                    className="w-full bg-indigo-600 text-white font-semibold py-2.5 rounded-xl hover:bg-indigo-700 transition-colors text-sm disabled:opacity-50"
+                  >
+                    {changingPassword ? "Updating..." : "Update Password"}
+                  </button>
+                </motion.form>
               )}
             </div>
           </motion.div>
         </div>
       </div>
+
+      {showDeleteConfirm && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm"
+            onClick={() => setShowDeleteConfirm(false)}
+          />
+          <motion.div
+            initial={{ scale: 0.95, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="relative w-full max-w-md bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-2xl border border-slate-200 dark:border-slate-700 transition-colors"
+          >
+            <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-2">Delete Account?</h3>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+              This action is <span className="text-red-500 font-bold">permanent</span> and will erase all your data. To confirm, please type your username <span className="font-mono bg-slate-100 dark:bg-slate-700 px-1.5 py-0.5 rounded text-indigo-600 dark:text-indigo-400">{user.username}</span> below:
+            </p>
+
+            <form onSubmit={handleDeleteAccount} className="space-y-4">
+              <input
+                required
+                type="text"
+                value={deleteConfirmUsername}
+                onChange={(e) => setDeleteConfirmUsername(e.target.value)}
+                placeholder="Type your username"
+                className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-red-500 outline-none text-slate-800 dark:text-slate-100 font-medium transition-colors"
+              />
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteConfirm(false)}
+                  className="flex-1 px-4 py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={deletingAccount || deleteConfirmUsername !== user.username}
+                  className="flex-1 px-4 py-3 bg-red-600 text-white font-semibold rounded-xl hover:bg-red-700 transition-colors text-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {deletingAccount ? "Deleting..." : "Delete Permanently"}
+                </button>
+              </div>
+            </form>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 };
