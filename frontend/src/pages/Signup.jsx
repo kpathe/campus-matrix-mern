@@ -97,7 +97,7 @@ const Signup = () => {
 
       setMessage(
         res.data.message ||
-          "Signup successful. You can verify your email later from the profile page."
+          "Signup successful. Please verify your email to log in."
       );
 
       setTimeout(() => {
@@ -105,7 +105,7 @@ const Signup = () => {
           state: {
             email: formData.email,
             message:
-              "Account created. Log in and verify your email later from the profile page.",
+              "Account created. Please log in to verify your email.",
           },
         });
       }, 900);

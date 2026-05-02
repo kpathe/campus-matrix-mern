@@ -102,100 +102,80 @@ const Dashboard = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50 p-6 md:p-12 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-indigo-50/40 to-blue-50/40 rounded-full blur-3xl opacity-50 -z-10 -translate-y-1/2 translate-x-1/4" />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 p-6 md:p-12 relative overflow-hidden transition-colors">
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-indigo-50/40 to-blue-50/40 dark:from-indigo-900/20 dark:to-blue-900/20 rounded-full blur-3xl opacity-50 -z-10 -translate-y-1/2 translate-x-1/4" />
 
       <div className="max-w-6xl mx-auto space-y-8 relative z-10">
-        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-200 gap-4">
+        <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col md:flex-row md:items-center justify-between pb-6 border-b border-slate-200 dark:border-slate-800 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-            <p className="text-slate-500 mt-1">
-              Welcome back, <span className="font-medium text-indigo-600">{user.name}</span>. Here&apos;s the current pulse of your mentorship workspace.
+            <h1 className="text-3xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">Dashboard</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1">
+              Welcome back, <span className="font-medium text-indigo-600 dark:text-indigo-400">{user.name}</span>. Here&apos;s the current pulse of your mentorship workspace.
             </p>
           </div>
           <div className="flex gap-3">
-            <button onClick={() => navigate("/notifications")} className="bg-white border border-slate-200 text-slate-700 hover:text-indigo-600 hover:border-indigo-300 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
+            <button onClick={() => navigate("/notifications")} className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:border-indigo-300 dark:hover:border-indigo-500 px-4 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm flex items-center gap-2 cursor-pointer">
               <Bell size={16} />
               Notifications
             </button>
           </div>
         </motion.div>
 
-        {!user.isEmailVerified && (
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-          >
-            <div className="flex items-start gap-3">
-              <MailWarning className="text-amber-600 mt-0.5" size={22} />
-              <div>
-                <h2 className="text-base font-semibold text-slate-800">Verify your email</h2>
-                <p className="text-sm text-slate-600 mt-1">
-                  Your account is active, but <span className="font-medium">{user.email}</span> is still unverified.
-                  Verify it from your profile page to finish setup.
-                </p>
-              </div>
-            </div>
-            <button
-              onClick={() => navigate("/profile")}
-              className="inline-flex items-center justify-center rounded-xl bg-amber-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-amber-700 transition-colors"
-            >
-              Open Profile
-            </button>
-          </motion.div>
-        )}
-
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {cards.map((card) => {
             const Icon = card.icon;
+            // Map light card colors to dark equivalents using generic dark variants if needed.
+            // Tailwind doesn't compute dynamic dark variants easily, so we can use generic ones or map them manually.
+            // For simplicity, we keep the light backgrounds but add a dark background overlay, or we can just apply dark specific styles in class.
+            const darkColor = card.color.replace('bg-', 'dark:bg-').replace('text-', 'dark:text-');
+            
             return (
-              <motion.div key={card.title} whileHover={{ y: -2 }} className="group bg-white p-6 rounded-2xl shadow-sm border border-slate-200 hover:border-indigo-300 transition-all cursor-pointer hover:shadow-md" onClick={() => navigate(card.path)}>
-                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${card.color}`}>
+              <motion.div key={card.title} whileHover={{ y: -2 }} className="group bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 hover:border-indigo-300 dark:hover:border-indigo-500 transition-all cursor-pointer hover:shadow-md" onClick={() => navigate(card.path)}>
+                <div className={`w-12 h-12 rounded-xl flex items-center justify-center mb-4 ${card.color} ${darkColor.replace('50', '900/40').replace('600', '400')}`}>
                   <Icon size={24} />
                 </div>
-                <h2 className="text-lg font-semibold text-slate-800 mb-1">{card.title}</h2>
-                <p className="text-2xl font-bold text-slate-900 mb-2">{card.value}</p>
-                <p className="text-slate-500 text-sm leading-relaxed">{card.description}</p>
+                <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-1">{card.title}</h2>
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-50 mb-2">{card.value}</p>
+                <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed">{card.description}</p>
               </motion.div>
             );
           })}
         </div>
 
         <div className="grid lg:grid-cols-2 gap-8">
-          <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">Pending Requests</h2>
+          <section className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">Pending Requests</h2>
             {connections.incomingRequests?.length ? (
               <div className="space-y-3">
                 {connections.incomingRequests.map((connection) => {
                   const requester =
                     connection.mentor?._id === user._id ? connection.mentee : connection.mentor;
                   return (
-                    <div key={connection._id} className="border border-slate-200 rounded-xl p-4">
-                      <p className="font-medium text-slate-800">{requester?.name}</p>
-                      <p className="text-sm text-slate-500">@{requester?.username}</p>
+                    <div key={connection._id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 bg-slate-50 dark:bg-slate-700/30">
+                      <p className="font-medium text-slate-800 dark:text-slate-200">{requester?.name}</p>
+                      <p className="text-sm text-slate-500 dark:text-slate-400">@{requester?.username}</p>
                     </div>
                   );
                 })}
               </div>
             ) : (
-              <p className="text-sm text-slate-500">No pending requests right now.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">No pending requests right now.</p>
             )}
           </section>
 
-          <section className="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-slate-800 mb-4">Latest Notifications</h2>
+          <section className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-6 shadow-sm">
+            <h2 className="text-lg font-semibold text-slate-800 dark:text-slate-100 mb-4">Latest Notifications</h2>
             {notifications.length ? (
               <div className="space-y-3">
                 {notifications.map((notification) => (
-                  <div key={notification._id} className="border border-slate-200 rounded-xl p-4">
-                    <p className="font-medium text-slate-800">{notification.title}</p>
-                    <p className="text-sm text-slate-500 mt-1">{notification.body}</p>
+                  <div key={notification._id} className="border border-slate-200 dark:border-slate-700 rounded-xl p-4 bg-slate-50 dark:bg-slate-700/30">
+                    <p className="font-medium text-slate-800 dark:text-slate-200">{notification.title}</p>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">{notification.body}</p>
                   </div>
                 ))}
               </div>
             ) : (
-              <p className="text-sm text-slate-500">No notifications yet.</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">No notifications yet.</p>
             )}
           </section>
         </div>

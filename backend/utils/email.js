@@ -1,6 +1,3 @@
-import { sendMail as sendGridMail } from "./sendgrid.js";
-import { sendMail as sendMailgun } from "./mailgun.js";
-import { sendMail as sendMailtrap } from "./mailtrap.js";
 const buildHtml = ({ heading, body, code }) => `
   <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; color: #1e293b;">
     <h2 style="color: #312e81;">${heading}</h2>
@@ -11,6 +8,30 @@ const buildHtml = ({ heading, body, code }) => `
     <p style="font-size: 13px; color: #64748b;">If you did not request this, you can safely ignore this email.</p>
   </div>
 `;
+
+const sendWithMailtrap = async ({ to, subject, html }) => {
+  const response = await fetch("https://send.api.mailtrap.io/api/send", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${process.env.MAILTRAP_API_TOKEN}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      from: {
+        email: process.env.EMAIL_FROM || "noreply@campusmatrix.com",
+        name: "Campus Matrix",
+      },
+      to: [{ email: to }],
+      subject,
+      html,
+    }),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(`Mailtrap email failed with status ${response.status}: ${errorText}`);
+  }
+};
 
 const sendWithResend = async ({ to, subject, html }) => {
   const response = await fetch("https://api.resend.com/emails", {
@@ -55,22 +76,22 @@ const sendWithBrevo = async ({ to, subject, html }) => {
   }
 };
 
+export const sendOtpEmail = async ({ to, subject, heading, body, code }) => {
   const html = buildHtml({ heading, body, code });
 
-  if (process.env.MAILTRAP_API_TOKEN) {
-    return sendMailtrap({ to, subject, html });
+  try {
+    if (process.env.MAILTRAP_API_TOKEN) {
+      return await sendWithMailtrap({ to, subject, html });
+    }
+    if (process.env.RESEND_API_KEY) {
+      return await sendWithResend({ to, subject, html });
+    }
+    if (process.env.BREVO_API_KEY) {
+      return await sendWithBrevo({ to, subject, html });
+    }
+    console.log(`[EMAIL FALLBACK] ${subject} -> ${to} :: OTP ${code}`);
+  } catch (error) {
+    console.error("Failed to send email:", error);
+    console.log(`[EMAIL FALLBACK] ${subject} -> ${to} :: OTP ${code}`);
   }
-  if (process.env.MAILGUN_API_KEY && process.env.MAILGUN_DOMAIN) {
-    return sendMailgun({ to, subject, html });
-  }
-  if (process.env.SENDGRID_API_KEY) {
-    return sendGridMail({ to, subject, html });
-  }
-  if (process.env.RESEND_API_KEY) {
-    return sendWithResend({ to, subject, html });
-  }
-  if (process.env.BREVO_API_KEY) {
-    return sendWithBrevo({ to, subject, html });
-  }
-  console.log(`[EMAIL FALLBACK] ${subject} -> ${to} :: OTP ${code}`);
 };

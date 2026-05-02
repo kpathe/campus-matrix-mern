@@ -67,9 +67,41 @@ const Login = ({ setUser }) => {
         navigate("/dashboard");
       }
     } catch (err) {
-      setError(err.response?.data?.message || "Login failed");
+      if (err.response?.data?.requiresVerification) {
+        setMode("verify");
+        setMessage(err.response.data.message || "Please check your email for a verification OTP.");
+        setResetForm((prev) => ({ ...prev, email: err.response.data.email || form.email }));
+      } else {
+        setError(err.response?.data?.message || "Login failed");
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleVerifyEmail = async (e) => {
+    e.preventDefault();
+    resetStatus();
+    setLoading(true);
+    try {
+      await axios.post("/api/auth/verify-email", { email: resetForm.email, otp: resetForm.otp });
+      setMessage("Email verified successfully! You can now log in.");
+      setMode("login");
+      setResetForm(initialResetState);
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to verify email.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendOtp = async () => {
+    resetStatus();
+    try {
+      await axios.post("/api/auth/resend-verification-otp", { email: resetForm.email });
+      setMessage("A fresh verification OTP has been sent to your email.");
+    } catch (err) {
+      setError(err.response?.data?.message || "Failed to resend OTP.");
     }
   };
 
@@ -134,11 +166,13 @@ const Login = ({ setUser }) => {
             {mode === "login" && "Welcome Back"}
             {mode === "forgot" && "Forgot Password"}
             {mode === "reset" && "Reset Password"}
+            {mode === "verify" && "Verify Email"}
           </h2>
           <p className="text-gray-500 mt-2 text-sm">
             {mode === "login" && "Sign in to Campus Matrix"}
             {mode === "forgot" && "We will send a reset OTP to your email"}
             {mode === "reset" && "Use the OTP to choose a new password"}
+            {mode === "verify" && "Enter the OTP sent to your email to verify your account"}
           </p>
         </div>
 
@@ -180,6 +214,41 @@ const Login = ({ setUser }) => {
               className="w-full py-3 px-4 text-sm font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-all shadow-lg shadow-blue-200 disabled:opacity-70"
             >
               {loading ? "Signing In..." : "Sign In"}
+            </button>
+          </form>
+        )}
+
+        {mode === "verify" && (
+          <form onSubmit={handleVerifyEmail} className="space-y-5">
+            <input
+              type="text"
+              value={resetForm.otp}
+              onChange={(e) => {
+                setResetForm({ ...resetForm, otp: e.target.value });
+                resetStatus();
+              }}
+              placeholder="6-digit OTP"
+              maxLength={6}
+              className="w-full px-4 py-3 bg-white/50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 tracking-[0.3em] text-center"
+              required
+            />
+            {message && <p className="text-emerald-600 text-sm text-center">{message}</p>}
+            {error && <p className="text-red-500 text-sm text-center">{error}</p>}
+            
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full py-3 px-4 text-sm font-semibold rounded-xl text-white bg-blue-600 hover:bg-blue-700 transition-all disabled:opacity-70"
+            >
+              {loading ? "Verifying..." : "Verify Email"}
+            </button>
+
+            <button
+              type="button"
+              onClick={handleResendOtp}
+              className="w-full text-sm font-semibold text-blue-600 hover:text-blue-500 transition-colors"
+            >
+              Didn't receive code? Resend OTP
             </button>
           </form>
         )}

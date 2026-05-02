@@ -11,7 +11,7 @@ const Matching = () => {
     incomingRequests: [],
     outgoingRequests: [],
   });
-  const [activeTab, setActiveTab] = useState("");
+  const [activeTab, setActiveTab] = useState("mentee"); // Default to mentee if dual
 
   const fetchConnections = async () => {
     try {
@@ -41,11 +41,21 @@ const Matching = () => {
       try {
         const res = await axios.get("/api/auth/me", { withCredentials: true });
         setUser(res.data);
-        if (res.data.roles.includes("mentee")) {
+        
+        const isMentee = res.data.roles.includes("mentee");
+        const isMentor = res.data.roles.includes("mentor");
+        
+        if (isMentee && isMentor) {
+          setActiveTab("mentee");
           fetchMatches("mentor");
-        } else {
+        } else if (isMentee) {
+          setActiveTab("mentee");
+          fetchMatches("mentor");
+        } else if (isMentor) {
+          setActiveTab("mentor");
           setLoading(false);
         }
+        
         fetchConnections();
       } catch (err) {
         toast.error("Failed to load matching context.");
@@ -84,6 +94,9 @@ const Matching = () => {
     }
   };
 
+  const isDualRole = user?.roles?.includes("mentor") && user?.roles?.includes("mentee");
+  const currentView = activeTab;
+
   return (
     <div className="p-6 max-w-6xl mx-auto space-y-8 min-h-screen">
       <div className="text-center">
@@ -93,10 +106,46 @@ const Matching = () => {
         </p>
       </div>
 
+      {isDualRole && (
+        <div className="flex justify-center border-b border-slate-200 dark:border-slate-700">
+          <div className="flex gap-8">
+            <button
+              onClick={() => {
+                setActiveTab("mentee");
+                fetchMatches("mentor");
+              }}
+              className={`pb-4 font-medium transition-colors relative ${
+                activeTab === "mentee"
+                  ? "text-indigo-600 dark:text-indigo-400"
+                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+              }`}
+            >
+              Find a Mentor
+              {activeTab === "mentee" && (
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 dark:bg-indigo-400" />
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab("mentor")}
+              className={`pb-4 font-medium transition-colors relative ${
+                activeTab === "mentor"
+                  ? "text-indigo-600 dark:text-indigo-400"
+                  : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+              }`}
+            >
+              Manage Mentees
+              {activeTab === "mentor" && (
+                <div className="absolute bottom-0 left-0 w-full h-0.5 bg-indigo-600 dark:bg-indigo-400" />
+              )}
+            </button>
+          </div>
+        </div>
+      )}
+
       <div className="grid lg:grid-cols-[1fr_320px] gap-8">
-        {/* Left Column: Matchmaking (Mentee View) */}
+        {/* Left Column: Main View */}
         <div className="space-y-6">
-          {user?.roles?.includes("mentee") ? (
+          {currentView === "mentee" ? (
             <>
               {loading ? (
                 <div className="flex flex-col items-center justify-center min-h-[40vh]">
@@ -104,8 +153,9 @@ const Matching = () => {
                   <p className="text-xl font-medium text-gray-600 dark:text-gray-400">Calculating Compatibility...</p>
                 </div>
               ) : matches.length === 0 ? (
-                <div className="text-center text-gray-500 dark:text-gray-400 mt-10 bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700">
-                  No mentors available right now. Check back later or complete more fields in your profile!
+                <div className="text-center text-gray-500 dark:text-gray-400 mt-10 bg-white dark:bg-slate-800 p-8 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm">
+                  <p className="text-lg font-medium text-slate-700 dark:text-slate-300 mb-2">No mentors available right now.</p>
+                  <p>You may already have an accepted mentor, or there are no seniors matching your criteria.</p>
                 </div>
               ) : (
                 <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
@@ -132,19 +182,19 @@ const Matching = () => {
               )}
             </>
           ) : (
-            <div className="bg-white dark:bg-slate-800 p-10 rounded-2xl border border-slate-200 dark:border-slate-700 flex flex-col items-center justify-center text-center">
+            <div className="bg-white dark:bg-slate-800 p-10 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-sm flex flex-col items-center justify-center text-center mt-10">
               <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Mentor Dashboard</h2>
               <p className="text-slate-500 dark:text-slate-400 max-w-md">
-                As a mentor, your role is to review and manage incoming requests from mentees in the sidebar. Mentees will discover you based on compatibility.
+                You can accept up to 5 mentees. Manage your incoming mentorship requests in the sidebar. Mentees discover you based on compatibility!
               </p>
             </div>
           )}
         </div>
 
-        {/* Right Column: Requests (Incoming & Outgoing) */}
+        {/* Right Column: Requests sidebar based on view */}
         <aside className="space-y-5">
-          {user?.roles?.includes("mentor") && (
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+          {currentView === "mentor" && (
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl p-5">
               <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">Incoming Requests</h3>
               {connections.incomingRequests?.length ? (
                 <div className="space-y-3">
@@ -176,8 +226,8 @@ const Matching = () => {
             </div>
           )}
 
-          {user?.roles?.includes("mentee") && (
-            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5">
+          {currentView === "mentee" && (
+            <div className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 shadow-sm rounded-2xl p-5">
               <h3 className="text-sm font-bold uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-3">Outgoing Requests</h3>
               {connections.outgoingRequests?.length ? (
                 <div className="space-y-3">

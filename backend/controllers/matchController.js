@@ -48,16 +48,53 @@ export const getPotentialMatches = async (req, res) => {
       return res.status(400).json({ message: "You need to create a profile first." });
     }
 
-    const potentialUsers = await User.find({
+    const meUser = await User.findById(req.user.id);
+
+    if (targetRole === "mentor") {
+      const existingMentor = await Connection.findOne({
+        mentee: req.user.id,
+        status: "accepted"
+      });
+      if (existingMentor) {
+        return res.status(200).json([]);
+      }
+    }
+
+    const query = {
       roles: targetRole,
       _id: { $ne: req.user.id },
       hasProfile: true,
-    });
+    };
+
+    if (targetRole === "mentor") {
+      query.year = { $gt: meUser.year };
+    } else if (targetRole === "mentee") {
+      query.year = { $lt: meUser.year };
+    }
+
+    const potentialUsers = await User.find(query);
 
     if (!potentialUsers.length) return res.status(200).json([]);
 
     const userIds = potentialUsers.map((user) => user._id);
     let theirProfiles = await Profile.find({ user: { $in: userIds } }).populate("user", "-password");
+
+    if (targetRole === "mentor") {
+      const fullMentors = await Connection.aggregate([
+        { $match: { mentor: { $in: userIds }, status: "accepted" } },
+        { $group: { _id: "$mentor", count: { $sum: 1 } } },
+        { $match: { count: { $gte: 5 } } }
+      ]);
+      const fullMentorIds = fullMentors.map(m => m._id.toString());
+      theirProfiles = theirProfiles.filter(profile => !fullMentorIds.includes(profile.user._id.toString()));
+    } else if (targetRole === "mentee") {
+      const menteesWithMentor = await Connection.find({
+        mentee: { $in: userIds },
+        status: "accepted"
+      });
+      const busyMenteeIds = menteesWithMentor.map(c => c.mentee.toString());
+      theirProfiles = theirProfiles.filter(profile => !busyMenteeIds.includes(profile.user._id.toString()));
+    }
 
     if (myProfile.gender) {
       theirProfiles = theirProfiles.filter((profile) => !profile.gender || profile.gender === myProfile.gender);
@@ -264,6 +301,16 @@ export const updateConnectionStatus = async (req, res) => {
 
     if (!isRecipient) {
       return res.status(403).json({ message: "You cannot update this request." });
+    }
+
+    if (status === "accepted") {
+      const acceptedCount = await Connection.countDocuments({
+        mentor: connection.mentor._id,
+        status: "accepted"
+      });
+      if (acceptedCount >= 5) {
+        return res.status(400).json({ message: "You have reached the maximum limit of 5 mentees." });
+      }
     }
 
     connection.status = status;

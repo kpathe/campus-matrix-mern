@@ -102,18 +102,18 @@ const CreateProfile = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 flex justify-center items-center px-4 py-12">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex justify-center items-center px-4 py-12 transition-colors">
       <motion.form
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         onSubmit={handleSubmit}
-        className="w-full max-w-3xl bg-white p-8 md:p-10 rounded-3xl shadow-sm border border-slate-200"
+        className="w-full max-w-3xl bg-white dark:bg-slate-800 p-8 md:p-10 rounded-3xl shadow-sm border border-slate-200 dark:border-slate-700 transition-colors"
       >
-        <div className="mb-8 border-b border-slate-100 pb-6">
-          <h2 className="text-3xl font-extrabold text-slate-800 tracking-tight">
+        <div className="mb-8 border-b border-slate-100 dark:border-slate-700 pb-6 transition-colors">
+          <h2 className="text-3xl font-extrabold text-slate-800 dark:text-slate-100 tracking-tight">
             {isEditMode ? "Edit Profile" : "Profile Setup"}
           </h2>
-          <p className="text-slate-500 mt-2 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 mt-2 text-sm">
             {isEditMode
               ? "Update your profile details so matching, messaging, and tasks stay relevant."
               : "Tell us about yourself to tailor your matchmaking experience."}
@@ -122,26 +122,26 @@ const CreateProfile = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="flex flex-col">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Department *</label>
+            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Department *</label>
             <input
               type="text"
               name="department"
               value={formData.department}
               onChange={handleChange}
               required
-              className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+              className="border border-slate-200 dark:border-slate-600 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
               placeholder="Computer Science"
             />
           </div>
 
           <div className="flex flex-col">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Gender *</label>
+            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Gender *</label>
             <select
               name="gender"
               value={formData.gender}
               onChange={handleChange}
               required
-              className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+              className="border border-slate-200 dark:border-slate-600 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-800 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
             >
               <option value="">Select Gender</option>
               <option value="Male">Male</option>
@@ -151,89 +151,89 @@ const CreateProfile = () => {
           </div>
 
           <div className="col-span-1 md:col-span-2">
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Cover Image</label>
-            <div className="border border-dashed border-slate-300 rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors">
-              <UploadCloud className="text-slate-400 mb-2" size={24} />
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Cover Image</label>
+            <div className="border border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-700/30 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors">
+              <UploadCloud className="text-slate-400 dark:text-slate-500 mb-2" size={24} />
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => setCoverImageFile(e.target.files[0])}
-                className="text-sm text-slate-600 w-full ml-12"
+                className="text-sm text-slate-600 dark:text-slate-400 w-full ml-12"
               />
-              {coverImageFile && <p className="text-xs text-indigo-600 mt-2 font-medium">Selected: {coverImageFile.name}</p>}
+              {coverImageFile && <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-2 font-medium">Selected: {coverImageFile.name}</p>}
             </div>
           </div>
 
           <div className="col-span-1 md:col-span-2">
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Profile Avatar</label>
-            <div className="border border-dashed border-slate-300 rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50 hover:bg-slate-100 transition-colors">
-              <UploadCloud className="text-slate-400 mb-2" size={24} />
+            <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Profile Avatar</label>
+            <div className="border border-dashed border-slate-300 dark:border-slate-600 rounded-xl p-4 flex flex-col items-center justify-center bg-slate-50 dark:bg-slate-700/30 hover:bg-slate-100 dark:hover:bg-slate-700/50 transition-colors">
+              <UploadCloud className="text-slate-400 dark:text-slate-500 mb-2" size={24} />
               <input
                 type="file"
                 accept="image/*"
                 onChange={(e) => setProfileImageFile(e.target.files[0])}
-                className="text-sm text-slate-600 w-full ml-12"
+                className="text-sm text-slate-600 dark:text-slate-400 w-full ml-12"
               />
-              {profileImageFile && <p className="text-xs text-indigo-600 mt-2 font-medium">Selected: {profileImageFile.name}</p>}
+              {profileImageFile && <p className="text-xs text-indigo-600 dark:text-indigo-400 mt-2 font-medium">Selected: {profileImageFile.name}</p>}
             </div>
           </div>
 
           <div className="col-span-1 md:col-span-2 flex flex-col">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Bio</label>
+            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Bio</label>
             <textarea
               name="bio"
               value={formData.bio}
               onChange={handleChange}
               rows="3"
-              className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm resize-none"
+              className="border border-slate-200 dark:border-slate-600 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm resize-none"
               placeholder="A brief description of yourself."
             />
           </div>
 
           <div className="col-span-1 md:col-span-2 grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="flex flex-col">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Skills</label>
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Skills</label>
               <input
                 type="text"
                 name="skills"
                 value={formData.skills}
                 onChange={handleChange}
-                className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+                className="border border-slate-200 dark:border-slate-600 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
                 placeholder="React, Node, Python"
               />
             </div>
             <div className="flex flex-col">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Interests</label>
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Interests</label>
               <input
                 type="text"
                 name="interests"
                 value={formData.interests}
                 onChange={handleChange}
-                className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+                className="border border-slate-200 dark:border-slate-600 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
                 placeholder="AI, Web3, Reading"
               />
             </div>
             <div className="flex flex-col">
-              <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">Languages</label>
+              <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">Languages</label>
               <input
                 type="text"
                 name="languages"
                 value={formData.languages}
                 onChange={handleChange}
-                className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+                className="border border-slate-200 dark:border-slate-600 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
                 placeholder="English, Hindi"
               />
             </div>
           </div>
 
           <div className="col-span-1 md:col-span-2 flex flex-col">
-            <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-2">LinkedIn Username</label>
+            <label className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2">LinkedIn Username</label>
             <input
               type="text"
               name="linkedin"
               value={formData.linkedin}
               onChange={handleChange}
-              className="border border-slate-200 p-3 rounded-xl bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-800 transition-all text-sm"
+              className="border border-slate-200 dark:border-slate-600 p-3 rounded-xl bg-slate-50 dark:bg-slate-700/50 text-slate-800 dark:text-slate-100 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all text-sm"
               placeholder="your-linkedin-handle"
             />
           </div>
@@ -242,7 +242,7 @@ const CreateProfile = () => {
         <button
           type="submit"
           disabled={uploading}
-          className="mt-8 w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
+          className="mt-8 w-full bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white font-bold py-3.5 px-4 rounded-xl transition-all shadow-md active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed"
         >
           {uploading ? "Uploading Images & Saving..." : isEditMode ? "Update Profile" : "Save Profile"}
         </button>
