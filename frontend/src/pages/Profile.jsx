@@ -30,6 +30,7 @@ const Profile = ({ setUser }) => {
     gfgUsername: "",
   });
   
+  const [isEditingIntegrations, setIsEditingIntegrations] = useState(false);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [passwordData, setPasswordData] = useState({ currentPassword: "", newPassword: "" });
   const [changingPassword, setChangingPassword] = useState(false);
@@ -130,11 +131,21 @@ const Profile = ({ setUser }) => {
         gfgUsername: res.data.gfgUsername || "",
       });
       toast.success("Integrations saved.");
+      setIsEditingIntegrations(false);
     } catch (err) {
       toast.error("Failed to save integrations");
     } finally {
       setSavingHandles(false);
     }
+  };
+
+  const cancelEditIntegrations = () => {
+    setHandles({
+      githubUsername: profile?.githubUsername || "",
+      leetcodeUsername: profile?.leetcodeUsername || "",
+      gfgUsername: profile?.gfgUsername || "",
+    });
+    setIsEditingIntegrations(false);
   };
 
   const removeHandle = async (key) => {
@@ -375,36 +386,87 @@ const Profile = ({ setUser }) => {
                 Coding Integrations
               </h2>
 
-              <div className="space-y-3">
-                {integrationItems.length > 0 ? (
-                  integrationItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <div key={item.key} className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 px-4 py-3 transition-colors">
-                        <div className="flex items-center gap-3">
-                          <Icon size={16} className="text-slate-500 dark:text-slate-400" />
-                          <div>
-                            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{item.label}</p>
-                            <p className="text-xs text-slate-500 dark:text-slate-400">{profile?.[item.key]}</p>
+              {isEditingIntegrations ? (
+                <form onSubmit={handleUpdateHandles} className="space-y-4">
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">GitHub Username</label>
+                    <input
+                      type="text"
+                      value={handles.githubUsername}
+                      onChange={(e) => setHandles({ ...handles, githubUsername: e.target.value })}
+                      className="mt-1 w-full text-sm px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 dark:text-slate-100 transition-colors"
+                      placeholder="e.g. octocat"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">LeetCode Username</label>
+                    <input
+                      type="text"
+                      value={handles.leetcodeUsername}
+                      onChange={(e) => setHandles({ ...handles, leetcodeUsername: e.target.value })}
+                      className="mt-1 w-full text-sm px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 dark:text-slate-100 transition-colors"
+                      placeholder="e.g. lc_user"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">GeeksForGeeks Username</label>
+                    <input
+                      type="text"
+                      value={handles.gfgUsername}
+                      onChange={(e) => setHandles({ ...handles, gfgUsername: e.target.value })}
+                      className="mt-1 w-full text-sm px-3 py-2.5 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl focus:ring-2 focus:ring-indigo-500 outline-none text-slate-800 dark:text-slate-100 transition-colors"
+                      placeholder="e.g. gfg_user"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={cancelEditIntegrations}
+                      className="flex-1 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-semibold py-2.5 rounded-xl hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors text-sm"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={savingHandles}
+                      className="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-2.5 rounded-xl transition-colors text-sm disabled:opacity-50"
+                    >
+                      {savingHandles ? "Saving..." : "Save"}
+                    </button>
+                  </div>
+                </form>
+              ) : (
+                <div className="space-y-3">
+                  {integrationItems.length > 0 ? (
+                    integrationItems.map((item) => {
+                      const Icon = item.icon;
+                      return (
+                        <div key={item.key} className="flex items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700/50 px-4 py-3 transition-colors">
+                          <div className="flex items-center gap-3">
+                            <Icon size={16} className="text-slate-500 dark:text-slate-400" />
+                            <div>
+                              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{item.label}</p>
+                              <p className="text-xs text-slate-500 dark:text-slate-400">{profile?.[item.key]}</p>
+                            </div>
                           </div>
+                          <button onClick={() => removeHandle(item.key)} className="rounded-lg p-2 text-slate-400 dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors">
+                            <X size={16} />
+                          </button>
                         </div>
-                        <button onClick={() => removeHandle(item.key)} className="rounded-lg p-2 text-slate-400 dark:text-slate-500 hover:bg-red-50 dark:hover:bg-red-900/20 hover:text-red-600 dark:hover:text-red-400 transition-colors">
-                          <X size={16} />
-                        </button>
-                      </div>
-                    );
-                  })
-                ) : (
-                   <p className="text-sm text-slate-400 dark:text-slate-500 italic text-center py-4">No integrations added.</p>
-                )}
-                
-                <button 
-                  onClick={() => navigate("/create-profile?mode=edit")}
-                  className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl transition-colors shadow-sm text-sm"
-                >
-                  Edit Integrations
-                </button>
-              </div>
+                      );
+                    })
+                  ) : (
+                     <p className="text-sm text-slate-400 dark:text-slate-500 italic text-center py-4">No integrations added.</p>
+                  )}
+                  
+                  <button 
+                    onClick={() => setIsEditingIntegrations(true)}
+                    className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2.5 rounded-xl transition-colors shadow-sm text-sm"
+                  >
+                    Edit Integrations
+                  </button>
+                </div>
+              )}
             </div>
 
             <div className="bg-white dark:bg-slate-800 rounded-3xl p-6 shadow-sm border border-slate-200 dark:border-slate-700 transition-colors">
